@@ -16,5 +16,14 @@ lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔
       Module.finrank (f i) (f (i+1)) = 2 := by
   sorry
 
-theorem main : ¬ (IsConstructible ↑((2 : ℝ)^((1 : ℝ)/3))) := by
+notation "α" => (2 : ℝ)^((1 : ℝ)/3)
+
+lemma alpha_cube : α ^ 3 = 2 := by
+  rw [Real.rpow_pow_comm (by norm_num), ← Real.rpow_natCast_mul (by norm_num)]
+  simp
+
+theorem main : ¬ (IsConstructible ↑α) := by
+  intro h
+  rw [isConstructible_iff] at h
+  obtain ⟨n, f, H⟩ := h
   sorry
