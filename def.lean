@@ -10,7 +10,7 @@ inductive IsConstructible : ℂ → Prop
 
 
 lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔
-    ∃ (n : ℕ), ∃ f : Fin (n+1) → {F : Subfield ℂ // True},
+    ∃ (n : ℕ), ∃ f : Fin (n+1) → Subfield ℂ,
       ∀ i, f i ≤ f (i+1) ∧ x ∈ f (Fin.last n) ∧ ∀ i,
       let h : Module (f i) (f (i+1)) := by
         sorry
