@@ -1,9 +1,8 @@
 import Mathlib
 open Polynomial IntermediateField Module Ideal
 
-
 -- the cube root of 2
-notation "α" => (2 : ℝ)^((1 : ℝ)/3)
+local notation "α" => (2 : ℝ)^((1 : ℝ)/3)
 
 -- alpha cubes to 2
 lemma alpha_cube : α ^ 3 = 2 := by
