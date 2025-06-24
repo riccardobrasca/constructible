@@ -40,9 +40,11 @@ lemma is_integral_alpha : IsIntegral ℚ α := by
     simp [leadingCoeff]
   · exact is_root_alpha
 
+
+
 notation "ℚα" => IntermediateField.adjoin ℚ α
 
-lemma alpha_degree : Module.finrank ℚ ℚα =3 := by
+lemma alpha_degree : finrank ℚ ℚα = 3 := by
   sorry
 
 theorem main : ¬ (IsConstructible ↑α) := by
