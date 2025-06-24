@@ -10,12 +10,12 @@ lemma alpha_cube : α ^ 3 = 2 := by
   simp
 
 -- Q adjoin the cube root of 2
-notation "ℚα" => IntermediateField.adjoin ℚ {↑α}
+local notation "ℚα" => IntermediateField.adjoin ℚ {↑α}
 
 -- (what will eventually be) the minimal polynomial of alpha
-notation "f" => (X ^ 3 - C 2 : Polynomial ℚ)
+local notation "f" => (X ^ 3 - C 2 : Polynomial ℚ)
 
-notation "g" => (X ^ 3 - C 2 : Polynomial ℤ)
+local notation "g" => (X ^ 3 - C 2 : Polynomial ℤ)
 
 -- f is the image of g in Q[x]
 lemma f_eq_g : (map (Int.castRingHom ℚ) g) = f := by
@@ -30,7 +30,7 @@ lemma is_monic_g : Monic g := by
   monicity!
 
 -- the ideal (2) in Z
-notation "P" => ((Ideal.span {2}) : Ideal ℤ)
+local notation "P" => ((Ideal.span {2}) : Ideal ℤ)
 
 -- the ideal (2) is prime in Z
 lemma two_is_prime : IsPrime P := by

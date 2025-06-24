@@ -1,4 +1,5 @@
 import Mathlib
+import Constructible.alphadegree
 
 inductive IsConstructible : ℂ → Prop
   | base (α : ℚ) : IsConstructible (algebraMap ℚ ℂ α)
