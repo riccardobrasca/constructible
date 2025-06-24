@@ -1,9 +1,14 @@
 import Mathlib
-open Polynomial IntermediateField Module Ideal AdjoinRoot
+open Polynomial IntermediateField Module Ideal
 
 
 -- the cube root of 2
 notation "α" => (2 : ℝ)^((1 : ℝ)/3)
+
+-- alpha cubes to 2
+lemma alpha_cube : α ^ 3 = 2 := by
+  rw [Real.rpow_pow_comm (by norm_num), ← Real.rpow_natCast_mul (by norm_num)]
+  simp
 
 -- Q adjoin the cube root of 2
 notation "ℚα" => IntermediateField.adjoin ℚ {↑α}
@@ -13,47 +18,39 @@ notation "f" => (X ^ 3 - C 2 : Polynomial ℚ)
 
 notation "g" => (X ^ 3 - C 2 : Polynomial ℤ)
 
+-- f is the image of g in Q[x]
+lemma f_eq_g : (map (Int.castRingHom ℚ) g) = f := by
+  simp [map_ofNat]
+
 -- f is monic
 lemma is_monic_f : Monic f := by
   monicity!
-
--- f is non-zero
-lemma is_nonzero_f : f ≠ 0 := by
-  refine X_pow_sub_C_ne_zero ?_ 2
-  norm_num
 
 -- g is monic
 lemma is_monic_g : Monic g := by
   monicity!
 
+-- the ideal (2) in Z
 notation "P" => ((Ideal.span {2}) : Ideal ℤ)
 
+-- the ideal (2) is prime in Z
 lemma two_is_prime : IsPrime P := by
   refine (span_singleton_prime ?_).mpr ?_
   · norm_num
   · norm_num
 
+-- the leading coefficient of g is not in (2)
 lemma one_not_in_ideal : ¬ (leadingCoeff g ∈ P) := by
   have := is_monic_g
   refine Monic.leadingCoeff_notMem this ?_
   refine IsPrime.ne_top ?_
   exact two_is_prime
 
-lemma f_eq_g : (map (Int.castRingHom ℚ) g) = f := by
-  simp [map_ofNat]
-
--- alpha cubes to 2
-lemma alpha_cube : α ^ 3 = 2 := by
-  rw [Real.rpow_pow_comm (by norm_num), ← Real.rpow_natCast_mul (by norm_num)]
-  simp
-
 -- alpha is a root of f
 lemma is_root_alpha : (eval₂ (algebraMap ℚ ℝ) α f) = 0 := by
   simp only [eval₂_sub, eval₂_pow, eval₂_X, eval₂_C]
   rw [alpha_cube]
   simp
-
-lemma is_root_alpha' : aeval α f = 0 := is_root_alpha
 
 -- alpha is integral over Q
 lemma is_integral_alpha : IsIntegral ℚ α := by
@@ -93,9 +90,8 @@ lemma is_irred_f : Irreducible f := by
 lemma is_min_poly_f : f = minpoly ℚ α := by
   apply minpoly.eq_of_irreducible_of_monic
   · exact is_irred_f
-  · exact is_root_alpha'
+  · exact is_root_alpha
   · exact is_monic_f
-
 
 -- [Q(alpha):Q] = 3
 theorem alpha_degree : finrank ℚ ℚα = 3 := by
