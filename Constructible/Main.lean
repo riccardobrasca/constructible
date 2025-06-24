@@ -53,12 +53,19 @@ lemma minpoly_degree_eq_pow_two_of_isConstructible {x : ℂ} (h : IsConstructibl
   | rad α _ _ => sorry
 
 lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔
-    ∃ (n : ℕ), ∃ f : Fin (n+1) → Subfield ℂ,
+    ∃ (n : ℕ), ∃ f : Fin (n+1) → Subfield ℂ, f 0 = ⊥ ∧
       ∀ i, ∃ (h : f i ≤ f (i+1)), x ∈ f (Fin.last n) ∧
       letI : Module (f i) (f (i+1)) := (Subfield.inclusion h).toAlgebra.toModule
       Module.finrank (f i) (f (i+1)) = 2 := by
   let L := Submodule.span ℚ {x}
+  sorry
 
+lemma isConstructible_iff' (x : ℂ) : IsConstructible x ↔
+    ∃ (L : List (Subfield ℂ)), ∃ h : 0 < L.length, L[0] = ⊥ ∧
+    ∀ i, (hi : i < L.length) → ∃ (h : L[i-1] ≤ L[i]), x ∈ L[i-1] ∧
+      letI : Module L[i-1] L[i] := (Subfield.inclusion h).toAlgebra.toModule
+      Module.finrank L[i-1] L[i] = 2 := by
+  let L := Submodule.span ℚ {x}
   sorry
 
 notation "α" => (2 : ℝ)^((1 : ℝ)/3)
@@ -72,3 +79,36 @@ theorem main : ¬ (IsConstructible ↑α) := by
   rw [isConstructible_iff] at h
   obtain ⟨n, f, H⟩ := h
   sorry
+
+
+lemma rank_eq_pow_two_of_isConstructible' {x : ℂ} (h : IsConstructible x) :
+    ∃ n, x ≠ 0 → Module.finrank ℚ (Submodule.span ℚ {x}) = 2 ^ n := by
+  rw[isConstructible_iff] at h
+  obtain ⟨ n , f, h1, h2 ⟩ := h
+
+
+  induction n with
+  | zero =>
+    use 0
+    simp_all
+    intro hx
+    specialize h2 0
+    rcases h2 with ⟨h3, h4⟩
+    aesop
+  | succ n hn =>
+    let g : Fin (n+1) → Subfield ℂ := fun i ↦ f (Fin.castSucc i )
+    specialize hn g
+    have : g 0 = ⊥ := by
+      rw[← h1]
+      rfl
+    specialize hn this
+    sorry
+
+lemma rank_eq_pow_two_of_isConstructible'' {x : ℂ} (h : IsConstructible x) :
+    ∃ n, x ≠ 0 → Module.finrank ℚ (Submodule.span ℚ {x}) = 2 ^ n := by
+  rw[isConstructible_iff'] at h
+  obtain ⟨ L , hL, h0, H ⟩ := h
+  induction L with
+  | nil => simp at hL
+  | cons head tail ih =>
+      sorry
