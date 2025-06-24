@@ -1,9 +1,8 @@
 import Mathlib
 open Polynomial IntermediateField Module Ideal
 
-
 -- the cube root of 2
-notation "α" => (2 : ℝ)^((1 : ℝ)/3)
+local notation "α" => (2 : ℝ)^((1 : ℝ)/3)
 
 -- alpha cubes to 2
 lemma alpha_cube : α ^ 3 = 2 := by
@@ -11,12 +10,12 @@ lemma alpha_cube : α ^ 3 = 2 := by
   simp
 
 -- Q adjoin the cube root of 2
-notation "ℚα" => IntermediateField.adjoin ℚ {↑α}
+local notation "ℚα" => IntermediateField.adjoin ℚ {↑α}
 
 -- (what will eventually be) the minimal polynomial of alpha
-notation "f" => (X ^ 3 - C 2 : Polynomial ℚ)
+local notation "f" => (X ^ 3 - C 2 : Polynomial ℚ)
 
-notation "g" => (X ^ 3 - C 2 : Polynomial ℤ)
+local notation "g" => (X ^ 3 - C 2 : Polynomial ℤ)
 
 -- f is the image of g in Q[x]
 lemma f_eq_g : (map (Int.castRingHom ℚ) g) = f := by
@@ -31,7 +30,7 @@ lemma is_monic_g : Monic g := by
   monicity!
 
 -- the ideal (2) in Z
-notation "P" => ((Ideal.span {2}) : Ideal ℤ)
+local notation "P" => ((Ideal.span {2}) : Ideal ℤ)
 
 -- the ideal (2) is prime in Z
 lemma two_is_prime : IsPrime P := by
@@ -97,3 +96,14 @@ lemma is_min_poly_f : f = minpoly ℚ α := by
 theorem alpha_degree : finrank ℚ ℚα = 3 := by
   rw [adjoin.finrank is_integral_alpha, ← is_min_poly_f]
   compute_degree!
+
+lemma three_not_power_of_two : ¬(∃ (n : ℕ), 2 ^ n = 3) := by
+  rintro ⟨n, hn⟩
+  match n with
+  | 0 => norm_num at hn
+  | 1 => norm_num at hn
+  | m+2 =>
+    have : 2 ^ (m + 2) > 3 := by
+      rw [pow_add] at hn
+      omega
+    linarith
