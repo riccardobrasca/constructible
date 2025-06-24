@@ -70,38 +70,83 @@ lemma isConstructible_iff' (x : ℂ) : IsConstructible x ↔
   let L := Submodule.span ℚ {x}
   sorry
 
-notation "α" => (2 : ℝ)^((1 : ℝ)/3)
-
-lemma alpha_cube : α ^ 3 = 2 := by
-  rw [Real.rpow_pow_comm (by norm_num), ← Real.rpow_natCast_mul (by norm_num)]
-  simp
-
-theorem main : ¬ (IsConstructible ↑α) := by
-  intro h
-  rw [isConstructible_iff] at h
-  obtain ⟨n, f, H⟩ := h
-  sorry
-
-lemma foo (L : List (Subfield ℂ)) (hL : 0 < L.length) --(hQ : L[L.length - 1] = ⊥)
+lemma foo (L : List (Subfield ℂ)) (hL : 0 < L.length)
     (H : ∀ i, (hi : i < L.length) → ∃ (h : L[i] ≤ L[i-1]),
       letI : Module L[i] L[i-1] := (Subfield.inclusion h).toAlgebra.toModule
-      Module.finrank L[i] L[i-1] = 2) :
-      ∃ htop :  L[L.length - 1] ≤ L[0],
-      letI : Module L[L.length - 1] L[0] := (Subfield.inclusion htop).toAlgebra.toModule
+      i ≠ 0 → Module.finrank L[i] L[i-1] = 2) :
+      ∃ h0 :  L[L.length - 1] ≤ L[0],
+      letI : Module L[L.length - 1] L[0] := (Subfield.inclusion h0).toAlgebra.toModule
       Module.finrank L[L.length - 1] L[0] = 2 ^ (L.length - 1) := by
-  have : L ≠ [] := List.ne_nil_of_length_pos hL
-  induction L, this using List.recNeNil with
+  induction L with
+  | nil => simp
+  | cons S L' H' =>
+      simp
+      sorry
+      --simpa [List.get_cons_zero] using H 0 (by simp)
+
+lemma foo' (L : List (Subfield ℂ)) (hL : L ≠ []) --(hQ : L[L.length - 1] = ⊥)
+    (H : ∀ i, (hi : i < L.length) → ∃ (h : L[i] ≤ L[i-1]),
+      letI : Module L[i] L[i-1] := (Subfield.inclusion h).toAlgebra.toModule
+      i ≠ 0 → Module.finrank L[i] L[i-1] = 2) :
+      ∃ h0 :  L.getLast hL ≤ L.head hL,
+      letI : Module (L.getLast hL) (L.head hL) := (Subfield.inclusion h0).toAlgebra.toModule
+      Module.finrank (L.getLast hL) (L.head hL) = 2 ^ (L.length - 1) := by
+  --have : L ≠ [] := List.ne_nil_of_length_pos hL
+  induction L, hL using List.recNeNil with
   | singleton S => aesop
   | cons S L' hL' h1 =>
-    have : 0 < L'.length := by rwa [List.length_pos_iff, ne_eq]
-    specialize h1 this
+    have : 0 < L'.length := by rwa [List.length_pos_iff]
+    have HL'dec : ∀ i, (hi : i < L'.length) → L'[i] ≤ L'[i - 1] := by
+      intro i hi
+      by_cases hi0 : i = 0
+      · simp [hi0]
+      obtain ⟨h, -⟩ := H (i+1) (by simp [hi])
+      simpa [List.getElem_cons, hi0] using h
+    simp [hL']
+    obtain ⟨h, -⟩ := H 1 (by simp; omega)
+    simp at h
+    refine ⟨?_, ?_⟩
+    · refine le_trans ?_ h
+      have : (∀ (i : ℕ) (hi : i < L'.length), ∃ (h : L'[i] ≤ L'[i - 1]),
+      letI : Module L'[i] L'[i-1] := (Subfield.inclusion h).toAlgebra.toModule
+      i ≠ 0 →  Module.finrank L'[i] L'[i - 1] = 2) := by sorry
+      specialize h1 this
+      obtain ⟨h0, h1⟩ := h1
+      apply le_trans h0
+      --simp [hL']
+
+      induction L' with
+      | nil => simp at hL'
+      | cons head tail ih =>
+        simp at h
+        simp
+        sorry
+    --refine Exists.intro ?_ ?_
+
+
+    --specialize h1 this
+    --obtain ⟨w, h⟩ := h1
+    --refine Exists.intro ?_ ?_
+    sorry
+
+    /- specialize h1 this
     have : (∀ (i : ℕ) (hi : i < L'.length), ∃ (h : L'[i] ≤ L'[i - 1]),
       letI : Module L'[i] L'[i-1] := (Subfield.inclusion h).toAlgebra.toModule
       Module.finrank L'[i] L'[i - 1] = 2) := by
+      intro i hi
+      have : i + 1 < (S :: L').length := by exact Nat.add_lt_of_lt_sub hi
+      specialize H (i + 1) this
+      rcases H with ⟨h, h2⟩
+      simp_all only [ne_eq, List.length_cons, lt_add_iff_pos_left, add_pos_iff, zero_lt_one, or_self,
+        List.getElem_cons_succ, Nat.add_one_sub_one]
+      refine Exists.intro ?_ ?_
+
+      sorry
+
 
       sorry
     simp
-
+    specialize h1 this -/
     sorry
 
 
