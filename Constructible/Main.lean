@@ -61,10 +61,11 @@ lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔
   sorry
 
 lemma isConstructible_iff' (x : ℂ) : IsConstructible x ↔
-    ∃ (L : List (Subfield ℂ)), ∃ h : 0 < L.length, L[0] = ⊥ ∧
-    ∀ i, (hi : i < L.length) → ∃ (h : L[i-1] ≤ L[i]), x ∈ L[i-1] ∧
-      letI : Module L[i-1] L[i] := (Subfield.inclusion h).toAlgebra.toModule
-      Module.finrank L[i-1] L[i] = 2 := by
+    ∃ (L : List (Subfield ℂ)), ∃ h : 0 < L.length, L[L.length - 1] = ⊥ ∧ x ∈ L[0] ∧
+    (∃ h1 : 1 < L.length, x ∉ L[1]) ∧
+    ∀ i, (hi : i < L.length) → ∃ (h : L[i] ≤ L[i-1]),
+      letI : Module L[i] L[i-1] := (Subfield.inclusion h).toAlgebra.toModule
+      Module.finrank L[i] L[i-1] = 2 := by
   let L := Submodule.span ℚ {x}
   sorry
 
@@ -79,6 +80,29 @@ theorem main : ¬ (IsConstructible ↑α) := by
   rw [isConstructible_iff] at h
   obtain ⟨n, f, H⟩ := h
   sorry
+
+lemma foo (L : List (Subfield ℂ)) (hL : 0 < L.length) --(hQ : L[L.length - 1] = ⊥)
+    (H : ∀ i, (hi : i < L.length) → ∃ (h : L[i] ≤ L[i-1]),
+      letI : Module L[i] L[i-1] := (Subfield.inclusion h).toAlgebra.toModule
+      Module.finrank L[i] L[i-1] = 2) :
+      ∃ htop :  L[L.length - 1] ≤ L[0],
+      letI : Module L[L.length - 1] L[0] := (Subfield.inclusion htop).toAlgebra.toModule
+      Module.finrank L[L.length - 1] L[0] = 2 ^ (L.length - 1) := by
+  have : L ≠ [] := List.ne_nil_of_length_pos hL
+  induction L, this using List.recNeNil with
+  | singleton S => aesop
+  | cons S L' hL' h1 =>
+    have : 0 < L'.length := by rwa [List.length_pos_iff, ne_eq]
+    specialize h1 this
+    have : (∀ (i : ℕ) (hi : i < L'.length), ∃ (h : L'[i] ≤ L'[i - 1]),
+      letI : Module L'[i] L'[i-1] := (Subfield.inclusion h).toAlgebra.toModule
+      Module.finrank L'[i] L'[i - 1] = 2) := by
+
+      sorry
+    simp
+
+    sorry
+
 
 
 lemma rank_eq_pow_two_of_isConstructible' {x : ℂ} (h : IsConstructible x) :
@@ -107,8 +131,44 @@ lemma rank_eq_pow_two_of_isConstructible' {x : ℂ} (h : IsConstructible x) :
 lemma rank_eq_pow_two_of_isConstructible'' {x : ℂ} (h : IsConstructible x) :
     ∃ n, x ≠ 0 → Module.finrank ℚ (Submodule.span ℚ {x}) = 2 ^ n := by
   rw[isConstructible_iff'] at h
-  obtain ⟨ L , hL, h0, H ⟩ := h
-  induction L with
-  | nil => simp at hL
+  obtain ⟨L , hL, h0, H⟩ := h
+  have : L ≠ [] := List.ne_nil_of_length_pos hL
+
+  by_cases hx0 : x = 0
+  · use 0
+    simp_all
+  induction L, this using List.recNeNil generalizing x with
+  | singleton S =>
+      use 0
+      simp_all
+  | cons S L' h HL =>
+      have : 0 < L'.length := by rwa [List.length_pos_iff, ne_eq]
+
+      specialize HL (x := x) this
+      have :  L'[L'.length - 1] = ⊥ := by
+        rw [← h0]
+        simp
+        rw [@List.getElem_length_sub_one_eq_getLast]
+        rw [List.getElem_cons_length rfl]
+        simp_all
+      specialize HL this
+      have : x ∈ L'[0] ∧ (∃ h1 : 1 < L'.length, x ∉ L'[1]) ∧ ∀ i, (hi : i < L'.length) → ∃ (h : L'[i] ≤ L'[i-1]),
+        letI : Module L'[i] L'[i-1] := (Subfield.inclusion h).toAlgebra.toModule
+        Module.finrank L'[i] L'[i-1] = 2 := by
+        constructor
+        · sorry
+
+        sorry
+      specialize HL this
+      exact HL
+
+/-   | nil => simp at hL
   | cons head tail ih =>
-      sorry
+    by_cases hT : tail = []
+    · use 0
+      simp_all
+      --have := H.1
+      exact finrank_span_singleton hx0
+    · have hT' : 0 < tail.length := by rwa [List.length_pos_iff, ne_eq]
+      specialize ih hT'
+    sorry -/
