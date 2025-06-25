@@ -85,15 +85,14 @@ lemma Equality_Degrees' {K : Type*} [Field K] {K₁ K₂ K₃ : Subfield K} (h :
   subst h
   rfl
 
-/- Lemma : the degree of a chain of L.Length+1 nested subfields L[i] such that
-[L[i]:L[i-1]] = 2 has degree [L[L.Length]:L[0]] = 2^(L.Length)-/
-
 lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔
     ∃ L : RelSeries (α := Subfield ℂ) (· < ·), x ∈ L.last ∧ L.head = ⊥ ∧
     ∀ i, (hi : i < Fin.last L.length) →
       letI := (Subfield.inclusion (ciao L hi).le).toAlgebra.toModule
       Module.finrank (L.toFun i) (L.toFun (i+1)) = 2 := by sorry
 
+/- Lemma : the degree of a chain of L.Length+1 nested subfields L[i] such that
+[L[i]:L[i-1]] = 2 has degree [L[L.Length]:L[0]] = 2^(L.Length)-/
 lemma Tower_Degree_pow_2 (L : RelSeries ((· < ·) : Rel (Subfield ℂ) (Subfield ℂ)))
     (H : ∀ i, (hi : i < Fin.last L.length) →
       letI := (Subfield.inclusion (ciao L hi).le).toAlgebra.toModule
