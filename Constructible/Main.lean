@@ -53,22 +53,6 @@ lemma minpoly_degree_eq_pow_two_of_isConstructible {x : ℂ} (h : IsConstructibl
   | inv α _ _ => sorry
   | rad α _ _ => sorry
 
-lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔
-    ∃ (n : ℕ), ∃ f : Fin (n+1) → Subfield ℂ, f 0 = ⊥ ∧
-      ∀ i, ∃ (h : f i ≤ f (i+1)), x ∈ f (Fin.last n) ∧
-      letI : Module (f i) (f (i+1)) := (Subfield.inclusion h).toAlgebra.toModule
-      Module.finrank (f i) (f (i+1)) = 2 := by
-  let L := Submodule.span ℚ {x}
-  sorry
-
-lemma isConstructible_iff' (x : ℂ) : IsConstructible x ↔
-    ∃ (L : List (Subfield ℂ)), ∃ h : 0 < L.length, L[L.length - 1] = ⊥ ∧ x ∈ L[0] ∧
-    (∃ h1 : 1 < L.length, x ∉ L[1]) ∧
-    ∀ i, (hi : i < L.length) → ∃ (h : L[i] ≤ L[i-1]),
-      letI : Module L[i] L[i-1] := (Subfield.inclusion h).toAlgebra.toModule
-      Module.finrank L[i] L[i-1] = 2 := by
-  let L := Submodule.span ℚ {x}
-  sorry
 
 lemma miao (L : RelSeries (α := Subfield ℂ) (· < ·)) : L.head ≤ L.last := by
   rw [← RelSeries.apply_zero, ← RelSeries.apply_last]
@@ -93,6 +77,12 @@ lemma stupid' {K : Type*} [Field K] {K₁ K₂ K₃ : Subfield K} (h : K₂ = K�
     Module.finrank K₁ K₂ = Module.finrank K₁ K₃ := by
   subst h
   rfl
+
+lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔
+    ∃ L : RelSeries (α := Subfield ℂ) (· < ·), x ∈ L.last ∧ L.head = ⊥ ∧
+    ∀ i, (hi : i < Fin.last L.length) →
+      letI := (Subfield.inclusion (ciao L hi).le).toAlgebra.toModule
+      Module.finrank (L.toFun i) (L.toFun (i+1)) = 2 := by sorry
 
 lemma foo'' (L : RelSeries ((· < ·) : Rel (Subfield ℂ) (Subfield ℂ)))
     (H : ∀ i, (hi : i < Fin.last L.length) →
@@ -139,30 +129,14 @@ lemma rank_eq_pow_two_of_isConstructible' {x : ℂ} (h : IsConstructible x) :
     ∃ n, x ≠ 0 → Module.finrank ℚ (Submodule.span ℚ {x}) = 2 ^ n := by
   rw[isConstructible_iff] at h
   obtain ⟨ n , f, h1, h2 ⟩ := h
-
-
-  induction n with
-  | zero =>
-    use 0
-    simp_all
-    intro hx
-    specialize h2 0
-    rcases h2 with ⟨h3, h4⟩
-    aesop
-  | succ n hn =>
-    let g : Fin (n+1) → Subfield ℂ := fun i ↦ f (Fin.castSucc i )
-    specialize hn g
-    have : g 0 = ⊥ := by
-      rw[← h1]
-      rfl
-    specialize hn this
-    sorry
+  sorry
 
 lemma rank_eq_pow_two_of_isConstructible'' {x : ℂ} (h : IsConstructible x) :
     ∃ n, x ≠ 0 → Module.finrank ℚ (Submodule.span ℚ {x}) = 2 ^ n := by
-  rw[isConstructible_iff'] at h
+  rw[isConstructible_iff] at h
   obtain ⟨L , hL, h0, H⟩ := h
-  have : L ≠ [] := List.ne_nil_of_length_pos hL
+  sorry
+  /- have : L ≠ [] := List.ne_nil_of_length_pos hL
 
   by_cases hx0 : x = 0
   · use 0
@@ -191,7 +165,7 @@ lemma rank_eq_pow_two_of_isConstructible'' {x : ℂ} (h : IsConstructible x) :
         sorry
       specialize HL this
       exact HL
-
+ -/
 /-   | nil => simp at hL
   | cons head tail ih =>
     by_cases hT : tail = []
