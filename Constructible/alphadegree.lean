@@ -97,13 +97,6 @@ theorem alpha_degree : finrank ℚ ℚα = 3 := by
   rw [adjoin.finrank is_integral_alpha, ← is_min_poly_f]
   compute_degree!
 
-lemma three_not_power_of_two : ¬(∃ (n : ℕ), 2 ^ n = 3) := by
-  rintro ⟨n, hn⟩
-  match n with
-  | 0 => norm_num at hn
-  | 1 => norm_num at hn
-  | m+2 =>
-    have : 2 ^ (m + 2) > 3 := by
-      rw [pow_add] at hn
-      omega
-    linarith
+theorem three_not_dvd_two_pow (n : ℕ) : ¬ (3 ∣ 2 ^ n) := by
+  intro hdiv
+  simpa using Nat.Prime.dvd_of_dvd_pow Nat.prime_three hdiv
