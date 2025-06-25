@@ -4,6 +4,8 @@ import Constructible.alphadegree
 /- Inductive Definition of constructible number : constructibles are
  closed under addition, multiplication, inverse, negation, and square root-/
 
+open IntermediateField
+
 inductive IsConstructible : ℂ → Prop
   | base (α : ℚ) : IsConstructible (algebraMap ℚ ℂ α)
   | add (α β : ℂ) : IsConstructible α → IsConstructible β → IsConstructible (α + β)
@@ -88,6 +90,20 @@ lemma Equality_Degrees' {K L : Type*} [Field K]  [Field L] [Algebra L K] {K₁ K
   subst h
   rfl
 
+
+/- theorem foo (L₁ L₂ : RelSeries (α := IntermediateField ℚ ℂ) (· ≤ ·))
+    (h₁ : ∀ i, (hi : i < Fin.last L₁.length) →
+      letI := (IntermediateField.inclusion (ciao L₁ hi)).toAlgebra.toModule
+      Module.finrank (L₁.toFun i) (L₁.toFun (i + 1)) ∣ 2)
+    (h₂ : ∀ i, (hi : i < Fin.last L₂.length) →
+      letI := (IntermediateField.inclusion (ciao L₂ hi)).toAlgebra.toModule
+      Module.finrank (L₂.toFun i) (L₂.toFun (i + 1)) ∣ 2)
+    (h_le : L₁.last ≤ L₂.head)
+    (h12 : letI := (IntermediateField.inclusion h_le).toAlgebra.toModule
+      Module.finrank L₁.last L₂.head ∣ 2) :
+    L₁.append L₂ := sorry -/
+
+
 lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔
     ∃ L : RelSeries (α := IntermediateField ℚ ℂ) (· ≤ ·), x ∈ L.last ∧ L.head = ⊥ ∧
     ∀ i, (hi : i < Fin.last L.length) →
@@ -114,16 +130,35 @@ lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔
         obtain ⟨L, hLx2, h0, H'⟩ := H
         by_cases h : x ∈ L.last
         · use L
-        · /- have : Algebra L.last (IntermediateField.adjoin L.last {x}).toSubfield := by
-            sorry
-          have hL' : L.last ≤ (IntermediateField.adjoin L.last {x}).toSubfield := by
+        · let K := (IntermediateField.adjoin L.last {x}).restrictScalars ℚ
+          have hK : L.last ≤ K := by
+            have := adjoin_contains_field_as_subfield {x} L.last.toSubfield
+            simp_all only [AlgHom.toRingHom_eq_coe, coe_toSubfield, coe_type_toSubfield, ge_iff_le, K]
+            exact this
+          let L' := L.snoc K hK
+          use L'
+          constructor
+          · simp [L', K]
+            exact mem_adjoin_simple_self (↥L.last) x
+          /- have : Algebra L.last (IntermediateField.adjoin L.last {x}) := by
+            sorry -/
+          /- have hL' : L.last ≤ (IntermediateField.adjoin L.last {x}) := by
             intro y hy
             --apply IntermediateField.mem_toSubfield
 
-            sorry
-          let L' := L.snoc (IntermediateField.adjoin L.last {x}).toSubfield -/
+            sorry -/
 
-          sorry
+
+          --let L' := L.snoc (IntermediateField.adjoin L.last {x})
+
+          · have : L'.head = L.head := by
+              aesop
+            rw [this]
+            refine ⟨h0, ?_⟩
+            intro i hi
+            simp [L']
+            --specialize H' i hi
+            sorry
     sorry
 
 noncomputable instance (L : RelSeries ((· ≤ ·) : Rel (IntermediateField ℚ ℂ) (IntermediateField ℚ ℂ)))
@@ -143,11 +178,11 @@ noncomputable def ciccio (L : RelSeries ((· ≤ ·) : Rel (IntermediateField �
   (IntermediateField.inclusion (miao L hij)).toAlgebra
 
 noncomputable instance (L : RelSeries ((· ≤ ·) : Rel (IntermediateField ℚ ℂ) (IntermediateField ℚ ℂ)))
-    {i : Fin (L.length + 1)} : Algebra (L.toFun i) (L.toFun (i+1)) := by
-  refine ciccio L ?_
-  sorry
+    {i : Fin (L.length + 1)} (hi : i < Fin.last L.length) : Algebra (L.toFun i) (L.toFun (i+1)) :=
+  (IntermediateField.inclusion (ciao L hi)).toAlgebra
 
---set_option maxHeartbeats 0 in
+set_option maxHeartbeats 0 in
+set_option synthInstance.maxHeartbeats 0 in
 /- Lemma : the degree of a chain of L.Length+1 nested subfields L[i] such that
 [L[i]:L[i-1]] = 2 has degree [L[L.Length]:L[0]] = 2^(L.Length)-/
 lemma Tower_Degree_pow_2 (L : RelSeries ((· ≤ ·) : Rel (IntermediateField ℚ ℂ) (IntermediateField ℚ ℂ)))
@@ -176,8 +211,7 @@ lemma Tower_Degree_pow_2 (L : RelSeries ((· ≤ ·) : Rel (IntermediateField �
           congr
           ext
           simp [Fin.coe_sub_one]
-        rw [Equality_Degrees this] at H
-        sorry
+        rwa [Equality_Degrees this] at H
       have : IsScalarTower L.head L.last S := IsScalarTower.of_algebraMap_eq (fun x ↦ rfl)
       have : Module.Free L.head L.last := Module.Free.of_divisionRing _ _
       have : Module.Free L.last S := Module.Free.of_divisionRing _ _
