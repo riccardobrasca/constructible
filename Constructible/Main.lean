@@ -89,7 +89,31 @@ lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔
     ∃ L : RelSeries (α := Subfield ℂ) (· < ·), x ∈ L.last ∧ L.head = ⊥ ∧
     ∀ i, (hi : i < Fin.last L.length) →
       letI := (Subfield.inclusion (ciao L hi).le).toAlgebra.toModule
-      Module.finrank (L.toFun i) (L.toFun (i+1)) = 2 := by sorry
+      Module.finrank (L.toFun i) (L.toFun (i+1)) = 2 := by
+    constructor
+    · intro h
+      induction h with
+      | base _ =>
+        let L := RelSeries.singleton (α := Subfield ℂ) (· < ·) ⊥
+        use L
+        simp_all only [RelSeries.last_singleton, eq_ratCast, RelSeries.head_singleton, RelSeries.singleton_length,
+          Nat.reduceAdd, Fin.last_zero, Fin.isValue, Fin.not_lt_zero, RelSeries.singleton_toFun, Module.finrank_self,
+          OfNat.one_ne_ofNat, implies_true, and_self, and_true, L]
+        apply SubfieldClass.ratCast_mem
+      | add x y _ _ _ _ =>
+        sorry
+      | neg _ _ _ =>
+        simp_all only [neg_mem_iff]
+      | mul α β _ _ _ _ => sorry
+      | inv x _ _ =>
+        simp_all only [inv_mem_iff]
+      | rad x hx H =>
+        obtain ⟨L, hLx2, h0, H'⟩ := H
+        by_cases h : x ∈ L.last
+        · use L
+        ·
+          sorry
+    sorry
 
 /- Lemma : the degree of a chain of L.Length+1 nested subfields L[i] such that
 [L[i]:L[i-1]] = 2 has degree [L[L.Length]:L[0]] = 2^(L.Length)-/
