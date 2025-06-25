@@ -70,86 +70,70 @@ lemma isConstructible_iff' (x : ℂ) : IsConstructible x ↔
   let L := Submodule.span ℚ {x}
   sorry
 
-lemma foo (L : List (Subfield ℂ)) (hL : 0 < L.length)
-    (H : ∀ i, (hi : i < L.length) → ∃ (h : L[i] ≤ L[i-1]),
-      letI : Module L[i] L[i-1] := (Subfield.inclusion h).toAlgebra.toModule
-      i ≠ 0 → Module.finrank L[i] L[i-1] = 2) :
-      ∃ h0 :  L[L.length - 1] ≤ L[0],
-      letI : Module L[L.length - 1] L[0] := (Subfield.inclusion h0).toAlgebra.toModule
-      Module.finrank L[L.length - 1] L[0] = 2 ^ (L.length - 1) := by
-  induction L with
-  | nil => simp
-  | cons S L' H' =>
-      simp
-      sorry
-      --simpa [List.get_cons_zero] using H 0 (by simp)
+lemma miao (L : RelSeries (α := Subfield ℂ) (· < ·)) : L.head ≤ L.last := by
+  rw [← RelSeries.apply_zero, ← RelSeries.apply_last]
+  rcases L.rel_or_eq_of_le (i := 0) (j := ⟨L.length, by omega⟩) (by simp) with h | h
+  · apply le_of_lt h
+  · simp [h]
+    rfl
 
-lemma foo' (L : List (Subfield ℂ)) (hL : L ≠ []) --(hQ : L[L.length - 1] = ⊥)
-    (H : ∀ i, (hi : i < L.length) → ∃ (h : L[i] ≤ L[i-1]),
-      letI : Module L[i] L[i-1] := (Subfield.inclusion h).toAlgebra.toModule
-      i ≠ 0 → Module.finrank L[i] L[i-1] = 2) :
-      ∃ h0 :  L.getLast hL ≤ L.head hL,
-      letI : Module (L.getLast hL) (L.head hL) := (Subfield.inclusion h0).toAlgebra.toModule
-      Module.finrank (L.getLast hL) (L.head hL) = 2 ^ (L.length - 1) := by
-  --have : L ≠ [] := List.ne_nil_of_length_pos hL
-  induction L, hL using List.recNeNil with
-  | singleton S => aesop
-  | cons S L' hL' h1 =>
-    have : 0 < L'.length := by rwa [List.length_pos_iff]
-    have HL'dec : ∀ i, (hi : i < L'.length) → L'[i] ≤ L'[i - 1] := by
-      intro i hi
-      by_cases hi0 : i = 0
-      · simp [hi0]
-      obtain ⟨h, -⟩ := H (i+1) (by simp [hi])
-      simpa [List.getElem_cons, hi0] using h
-    simp [hL']
-    obtain ⟨h, -⟩ := H 1 (by simp; omega)
-    simp at h
-    refine ⟨?_, ?_⟩
-    · refine le_trans ?_ h
-      have : (∀ (i : ℕ) (hi : i < L'.length), ∃ (h : L'[i] ≤ L'[i - 1]),
-      letI : Module L'[i] L'[i-1] := (Subfield.inclusion h).toAlgebra.toModule
-      i ≠ 0 →  Module.finrank L'[i] L'[i - 1] = 2) := by sorry
-      specialize h1 this
-      obtain ⟨h0, h1⟩ := h1
-      apply le_trans h0
-      --simp [hL']
+lemma ciao (L : RelSeries (α := Subfield ℂ) (· < ·)) {i : Fin (L.length + 1)} (hi : i < Fin.last L.length) :
+    L.toFun i < L.toFun (i+1) := L.rel_of_lt (Fin.lt_add_one_iff.2 hi)
 
-      induction L' with
-      | nil => simp at hL'
-      | cons head tail ih =>
-        simp at h
-        simp
-        sorry
-    --refine Exists.intro ?_ ?_
+lemma stupid {K : Type*} [Field K] {K₁ K₂ K₃ : Subfield K} (h : K₁ = K₂) (h1 : K₁ ≤ K₃) :
+    letI : Module K₁ K₃ := (Subfield.inclusion h1).toAlgebra.toModule
+    letI : Module K₂ K₃ := (Subfield.inclusion (h ▸ h1)).toAlgebra.toModule
+    Module.finrank K₁ K₃ = Module.finrank K₂ K₃ := by
+  subst h
+  rfl
 
+lemma stupid' {K : Type*} [Field K] {K₁ K₂ K₃ : Subfield K} (h : K₂ = K₃) (h1 : K₁ ≤ K₂) :
+    letI : Module K₁ K₂ := (Subfield.inclusion h1).toAlgebra.toModule
+    letI : Module K₁ K₃ := (Subfield.inclusion (h ▸ h1)).toAlgebra.toModule
+    Module.finrank K₁ K₂ = Module.finrank K₁ K₃ := by
+  subst h
+  rfl
 
-    --specialize h1 this
-    --obtain ⟨w, h⟩ := h1
-    --refine Exists.intro ?_ ?_
-    sorry
-
-    /- specialize h1 this
-    have : (∀ (i : ℕ) (hi : i < L'.length), ∃ (h : L'[i] ≤ L'[i - 1]),
-      letI : Module L'[i] L'[i-1] := (Subfield.inclusion h).toAlgebra.toModule
-      Module.finrank L'[i] L'[i - 1] = 2) := by
-      intro i hi
-      have : i + 1 < (S :: L').length := by exact Nat.add_lt_of_lt_sub hi
-      specialize H (i + 1) this
-      rcases H with ⟨h, h2⟩
-      simp_all only [ne_eq, List.length_cons, lt_add_iff_pos_left, add_pos_iff, zero_lt_one, or_self,
-        List.getElem_cons_succ, Nat.add_one_sub_one]
-      refine Exists.intro ?_ ?_
-
-      sorry
-
-
-      sorry
-    simp
-    specialize h1 this -/
-    sorry
-
-
+lemma foo'' (L : RelSeries ((· < ·) : Rel (Subfield ℂ) (Subfield ℂ)))
+    (H : ∀ i, (hi : i < Fin.last L.length) →
+      letI := (Subfield.inclusion (ciao L hi).le).toAlgebra.toModule
+      Module.finrank (L.toFun i) (L.toFun (i+1)) = 2) :
+      letI := (Subfield.inclusion (miao L)).toAlgebra
+      Module.finrank L.head L.last = 2 ^ L.length := by
+    induction L using RelSeries.inductionOn' with
+    | singleton x =>  exact Module.finrank_self _
+    | snoc L S hLS h =>
+      letI : Algebra L.head L.last := (Subfield.inclusion (miao L)).toAlgebra
+      letI : Algebra L.last S := (Subfield.inclusion hLS.le).toAlgebra
+      letI : Algebra L.head S := (Subfield.inclusion (le_trans (miao L) hLS.le)).toAlgebra
+      have key : Module.finrank L.last S = 2 := by
+        specialize H (Fin.last _ - 1) (by simp [Fin.sub_one_lt_iff, Fin.last_pos])
+        have : (L.snoc S hLS).toFun (Fin.last (L.snoc S hLS).length - 1 + 1) =
+          (L.snoc S hLS).toFun (Fin.last (L.snoc S hLS).length) := by simp
+        rw [stupid' this] at H
+        simp_rw [RelSeries.apply_last] at H
+        rw [stupid' (L.last_snoc S hLS)] at H
+        have : (L.snoc S hLS).toFun (Fin.last (L.snoc S hLS).length - 1) = L.last := by
+          rw [← L.apply_last, ← L.snoc_cast_castSucc S hLS]
+          congr
+          ext
+          simp [Fin.coe_sub_one]
+        rwa [stupid this] at H
+      have : IsScalarTower L.head L.last S := IsScalarTower.of_algebraMap_eq (fun x ↦ rfl)
+      have : Module.Free L.head L.last := Module.Free.of_divisionRing _ _
+      have : Module.Free L.last S := Module.Free.of_divisionRing _ _
+      rw [stupid (L.head_snoc S hLS), stupid' (L.last_snoc S hLS),
+        ← Module.finrank_mul_finrank L.head L.last S, h]
+      · simp [key, ← pow_succ]
+      · intro i hi
+        specialize H i.castSucc (by simp)
+        have boh : (i+1).castSucc = i.castSucc + 1 := by
+          ext
+          simp [Fin.val_add_one]
+          aesop
+        have := (L.snoc_castSucc S hLS (i+1))
+        rw [boh] at this
+        rwa [stupid (L.snoc_castSucc S hLS i), stupid' this] at H
 
 lemma rank_eq_pow_two_of_isConstructible' {x : ℂ} (h : IsConstructible x) :
     ∃ n, x ≠ 0 → Module.finrank ℚ (Submodule.span ℚ {x}) = 2 ^ n := by
