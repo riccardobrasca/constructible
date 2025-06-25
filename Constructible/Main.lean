@@ -60,45 +60,48 @@ lemma minpoly_degree_eq_pow_two_of_isConstructible {x : ℂ} (h : IsConstructibl
 
 /-Lemma stating that the first subfield L[0] of a chain of nested subfields L is a
 subfield of the last subfield L[L.length] in the chain-/
-lemma RelSeries_head_subset_last (L : RelSeries (α := Subfield ℂ) (· < ·)) : L.head ≤ L.last := by
+lemma RelSeries_head_subset_last (L : RelSeries (α := IntermediateField ℚ ℂ) (· ≤ ·)) : L.head ≤ L.last := by
   rw [← RelSeries.apply_zero, ← RelSeries.apply_last]
   rcases L.rel_or_eq_of_le (i := 0) (j := ⟨L.length, by omega⟩) (by simp) with h | h
-  · apply le_of_lt h
+  · exact h
   · simp [h]
     rfl
 
-lemma ciao (L : RelSeries (α := Subfield ℂ) (· < ·)) {i : Fin (L.length + 1)} (hi : i < Fin.last L.length) :
-    L.toFun i < L.toFun (i+1) := L.rel_of_lt (Fin.lt_add_one_iff.2 hi)
+lemma ciao (L : RelSeries (α := IntermediateField ℚ ℂ) (· ≤ ·)) {i : Fin (L.length + 1)}
+    (hi : i < Fin.last L.length) :
+    L.toFun i ≤ L.toFun (i+1) := L.rel_of_lt <|Fin.lt_add_one_iff.mpr hi
 
 /-Trivial Lemma, but requires a proof for Lean-/
-lemma Equality_Degrees {K : Type*} [Field K] {K₁ K₂ K₃ : Subfield K} (h : K₁ = K₂) (h1 : K₁ ≤ K₃) :
-    letI : Module K₁ K₃ := (Subfield.inclusion h1).toAlgebra.toModule
-    letI : Module K₂ K₃ := (Subfield.inclusion (h ▸ h1)).toAlgebra.toModule
+lemma Equality_Degrees {K L : Type*} [Field K] [Field L] [Algebra L K] {K₁ K₂ K₃ : IntermediateField L K}
+    (h : K₁ = K₂) (h1 : K₁ ≤ K₃) :
+    letI : Module K₁ K₃ := (IntermediateField.inclusion h1).toAlgebra.toModule
+    letI : Module K₂ K₃ := (IntermediateField.inclusion (h ▸ h1)).toAlgebra.toModule
     Module.finrank K₁ K₃ = Module.finrank K₂ K₃ := by
   subst h
   rfl
 
-lemma Equality_Degrees' {K : Type*} [Field K] {K₁ K₂ K₃ : Subfield K} (h : K₂ = K₃) (h1 : K₁ ≤ K₂) :
-    letI : Module K₁ K₂ := (Subfield.inclusion h1).toAlgebra.toModule
-    letI : Module K₁ K₃ := (Subfield.inclusion (h ▸ h1)).toAlgebra.toModule
+lemma Equality_Degrees' {K L : Type*} [Field K]  [Field L] [Algebra L K] {K₁ K₂ K₃ : IntermediateField L K}
+    (h : K₂ = K₃) (h1 : K₁ ≤ K₂) :
+    letI : Module K₁ K₂ := (IntermediateField.inclusion h1).toAlgebra.toModule
+    letI : Module K₁ K₃ := (IntermediateField.inclusion (h ▸ h1)).toAlgebra.toModule
     Module.finrank K₁ K₂ = Module.finrank K₁ K₃ := by
   subst h
   rfl
 
 lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔
-    ∃ L : RelSeries (α := Subfield ℂ) (· < ·), x ∈ L.last ∧ L.head = ⊥ ∧
+    ∃ L : RelSeries (α := IntermediateField ℚ ℂ) (· ≤ ·), x ∈ L.last ∧ L.head = ⊥ ∧
     ∀ i, (hi : i < Fin.last L.length) →
-      letI := (Subfield.inclusion (ciao L hi).le).toAlgebra.toModule
-      Module.finrank (L.toFun i) (L.toFun (i+1)) = 2 := by
+      letI := (IntermediateField.inclusion (ciao L hi)).toAlgebra.toModule
+      Module.finrank (L.toFun i) (L.toFun (i + 1)) ∣ 2 := by
     constructor
     · intro h
       induction h with
       | base _ =>
-        let L := RelSeries.singleton (α := Subfield ℂ) (· < ·) ⊥
+        let L := RelSeries.singleton (α := IntermediateField ℚ ℂ) (· ≤ ·) ⊥
         use L
         simp_all only [RelSeries.last_singleton, eq_ratCast, RelSeries.head_singleton, RelSeries.singleton_length,
           Nat.reduceAdd, Fin.last_zero, Fin.isValue, Fin.not_lt_zero, RelSeries.singleton_toFun, Module.finrank_self,
-          OfNat.one_ne_ofNat, implies_true, and_self, and_true, L]
+          isUnit_iff_eq_one, IsUnit.dvd, implies_true, and_self, and_true, L]
         apply SubfieldClass.ratCast_mem
       | add x y _ _ _ _ =>
         sorry
@@ -111,25 +114,57 @@ lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔
         obtain ⟨L, hLx2, h0, H'⟩ := H
         by_cases h : x ∈ L.last
         · use L
-        ·
+        · /- have : Algebra L.last (IntermediateField.adjoin L.last {x}).toSubfield := by
+            sorry
+          have hL' : L.last ≤ (IntermediateField.adjoin L.last {x}).toSubfield := by
+            intro y hy
+            --apply IntermediateField.mem_toSubfield
+
+            sorry
+          let L' := L.snoc (IntermediateField.adjoin L.last {x}).toSubfield -/
+
           sorry
     sorry
 
+noncomputable instance (L : RelSeries ((· ≤ ·) : Rel (IntermediateField ℚ ℂ) (IntermediateField ℚ ℂ)))
+  (i : Fin (L.length + 1)) : Field (L.toFun i) := by
+  infer_instance
+
+lemma miao (L : RelSeries ((· ≤ ·) : Rel (IntermediateField ℚ ℂ) (IntermediateField ℚ ℂ)))
+    {i j : Fin (L.length + 1)} (hij : i ≤ j) : L.toFun i ≤  L.toFun j := by
+  have := L.rel_or_eq_of_le hij
+  simp_all only [ge_iff_le]
+  cases this with
+  | inl h => simp_all only
+  | inr h_1 => simp_all only [le_refl]
+
+noncomputable def ciccio (L : RelSeries ((· ≤ ·) : Rel (IntermediateField ℚ ℂ) (IntermediateField ℚ ℂ)))
+    {i j : Fin (L.length + 1)} (hij : i ≤ j) : Algebra (L.toFun i) (L.toFun j) :=
+  (IntermediateField.inclusion (miao L hij)).toAlgebra
+
+noncomputable instance (L : RelSeries ((· ≤ ·) : Rel (IntermediateField ℚ ℂ) (IntermediateField ℚ ℂ)))
+    {i : Fin (L.length + 1)} : Algebra (L.toFun i) (L.toFun (i+1)) := by
+  refine ciccio L ?_
+  sorry
+
+--set_option maxHeartbeats 0 in
 /- Lemma : the degree of a chain of L.Length+1 nested subfields L[i] such that
 [L[i]:L[i-1]] = 2 has degree [L[L.Length]:L[0]] = 2^(L.Length)-/
-lemma Tower_Degree_pow_2 (L : RelSeries ((· < ·) : Rel (Subfield ℂ) (Subfield ℂ)))
+lemma Tower_Degree_pow_2 (L : RelSeries ((· ≤ ·) : Rel (IntermediateField ℚ ℂ) (IntermediateField ℚ ℂ)))
     (H : ∀ i, (hi : i < Fin.last L.length) →
-      letI := (Subfield.inclusion (ciao L hi).le).toAlgebra.toModule
-      Module.finrank (L.toFun i) (L.toFun (i+1)) = 2) :
-      letI := (Subfield.inclusion (RelSeries_head_subset_last L)).toAlgebra
-      Module.finrank L.head L.last = 2 ^ L.length := by
+      letI := (IntermediateField.inclusion (ciao L hi)).toAlgebra.toModule
+      Module.finrank (L.toFun i) (L.toFun (i+1)) ∣ 2) :
+      letI := (IntermediateField.inclusion (RelSeries_head_subset_last L)).toAlgebra
+      Module.finrank L.head L.last ∣ 2 ^ L.length := by
     induction L using RelSeries.inductionOn' with
-    | singleton x =>  exact Module.finrank_self _
+    | singleton x =>
+      simp only [RelSeries.singleton_length, pow_zero, Nat.dvd_one]
+      exact Module.finrank_self ↥(RelSeries.singleton (fun x1 x2 ↦ x1 ≤ x2) x).head
     | snoc L S hLS h =>
-      letI : Algebra L.head L.last := (Subfield.inclusion (RelSeries_head_subset_last L)).toAlgebra
-      letI : Algebra L.last S := (Subfield.inclusion hLS.le).toAlgebra
-      letI : Algebra L.head S := (Subfield.inclusion (le_trans (RelSeries_head_subset_last L) hLS.le)).toAlgebra
-      have key : Module.finrank L.last S = 2 := by
+      letI : Algebra L.head L.last := (IntermediateField.inclusion (RelSeries_head_subset_last L)).toAlgebra
+      letI : Algebra L.last S := (IntermediateField.inclusion hLS).toAlgebra
+      letI : Algebra L.head S := (IntermediateField.inclusion (le_trans (RelSeries_head_subset_last L) hLS)).toAlgebra
+      have key : Module.finrank L.last S ∣ 2 := by
         specialize H (Fin.last _ - 1) (by simp [Fin.sub_one_lt_iff, Fin.last_pos])
         have : (L.snoc S hLS).toFun (Fin.last (L.snoc S hLS).length - 1 + 1) =
           (L.snoc S hLS).toFun (Fin.last (L.snoc S hLS).length) := by simp
@@ -141,14 +176,21 @@ lemma Tower_Degree_pow_2 (L : RelSeries ((· < ·) : Rel (Subfield ℂ) (Subfiel
           congr
           ext
           simp [Fin.coe_sub_one]
-        rwa [Equality_Degrees this] at H
+        rw [Equality_Degrees this] at H
+        sorry
       have : IsScalarTower L.head L.last S := IsScalarTower.of_algebraMap_eq (fun x ↦ rfl)
       have : Module.Free L.head L.last := Module.Free.of_divisionRing _ _
       have : Module.Free L.last S := Module.Free.of_divisionRing _ _
       rw [Equality_Degrees (L.head_snoc S hLS), Equality_Degrees' (L.last_snoc S hLS),
-        ← Module.finrank_mul_finrank L.head L.last S, h]
-      · simp [key, ← pow_succ]
-      · intro i hi
+        ← Module.finrank_mul_finrank L.head L.last S]
+      have : (L.snoc S hLS).length = L.length + 1 := by
+        aesop
+      rw [this, pow_add]
+      simp
+      apply mul_dvd_mul
+      · apply h
+        intro i hi
+        --specialize H i.castSucc (by simp)
         specialize H i.castSucc (by simp)
         have boh : (i+1).castSucc = i.castSucc + 1 := by
           ext
@@ -157,6 +199,8 @@ lemma Tower_Degree_pow_2 (L : RelSeries ((· < ·) : Rel (Subfield ℂ) (Subfiel
         have := (L.snoc_castSucc S hLS (i+1))
         rw [boh] at this
         rwa [Equality_Degrees (L.snoc_castSucc S hLS i), Equality_Degrees' this] at H
+
+      exact key
 
 lemma rank_eq_pow_two_of_isConstructible' {x : ℂ} (h : IsConstructible x) :
     ∃ n, x ≠ 0 → Module.finrank ℚ (Submodule.span ℚ {x}) = 2 ^ n := by
