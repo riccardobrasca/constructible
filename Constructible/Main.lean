@@ -1,5 +1,13 @@
 import Mathlib
-import Constructible.alphadegree
+--import Constructible.alphadegree
+import Constructible.Lemmas
+
+attribute [local instance 2000] Algebra.toModule Module.toDistribMulAction AddMonoid.toZero
+  DistribMulAction.toMulAction MulAction.toSMul
+  Ideal.Quotient.commRing CommRing.toRing Ring.toSemiring
+  Semiring.toNonUnitalSemiring NonUnitalSemiring.toNonUnitalNonAssocSemiring
+  NonUnitalNonAssocSemiring.toAddCommMonoid NonUnitalNonAssocSemiring.toMulZeroClass
+  MulZeroClass.toMul Submodule.idemSemiring IdemSemiring.toSemiring CommSemiring.toCommMonoid
 
 /- Inductive Definition of constructible number : constructibles are
  closed under addition, multiplication, inverse, negation, and square root-/
@@ -68,40 +76,6 @@ lemma RelSeries_head_subset_last (L : RelSeries (α := IntermediateField ℚ ℂ
   · exact h
   · simp [h]
     rfl
-
-lemma ciao (L : RelSeries (α := IntermediateField ℚ ℂ) (· ≤ ·)) {i : Fin (L.length + 1)}
-    (hi : i < Fin.last L.length) :
-    L.toFun i ≤ L.toFun (i+1) := L.rel_of_lt <|Fin.lt_add_one_iff.mpr hi
-
-/-Trivial Lemma, but requires a proof for Lean-/
-lemma Equality_Degrees {K L : Type*} [Field K] [Field L] [Algebra L K] {K₁ K₂ K₃ : IntermediateField L K}
-    (h : K₁ = K₂) (h1 : K₁ ≤ K₃) :
-    letI : Module K₁ K₃ := (IntermediateField.inclusion h1).toAlgebra.toModule
-    letI : Module K₂ K₃ := (IntermediateField.inclusion (h ▸ h1)).toAlgebra.toModule
-    Module.finrank K₁ K₃ = Module.finrank K₂ K₃ := by
-  subst h
-  rfl
-
-lemma Equality_Degrees' {K L : Type*} [Field K]  [Field L] [Algebra L K] {K₁ K₂ K₃ : IntermediateField L K}
-    (h : K₂ = K₃) (h1 : K₁ ≤ K₂) :
-    letI : Module K₁ K₂ := (IntermediateField.inclusion h1).toAlgebra.toModule
-    letI : Module K₁ K₃ := (IntermediateField.inclusion (h ▸ h1)).toAlgebra.toModule
-    Module.finrank K₁ K₂ = Module.finrank K₁ K₃ := by
-  subst h
-  rfl
-
-
-/- theorem foo (L₁ L₂ : RelSeries (α := IntermediateField ℚ ℂ) (· ≤ ·))
-    (h₁ : ∀ i, (hi : i < Fin.last L₁.length) →
-      letI := (IntermediateField.inclusion (ciao L₁ hi)).toAlgebra.toModule
-      Module.finrank (L₁.toFun i) (L₁.toFun (i + 1)) ∣ 2)
-    (h₂ : ∀ i, (hi : i < Fin.last L₂.length) →
-      letI := (IntermediateField.inclusion (ciao L₂ hi)).toAlgebra.toModule
-      Module.finrank (L₂.toFun i) (L₂.toFun (i + 1)) ∣ 2)
-    (h_le : L₁.last ≤ L₂.head)
-    (h12 : letI := (IntermediateField.inclusion h_le).toAlgebra.toModule
-      Module.finrank L₁.last L₂.head ∣ 2) :
-    L₁.append L₂ := sorry -/
 
 
 lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔
@@ -182,12 +156,12 @@ noncomputable instance (L : RelSeries ((· ≤ ·) : Rel (IntermediateField ℚ 
   (IntermediateField.inclusion (ciao L hi)).toAlgebra
 
 set_option maxHeartbeats 0 in
-set_option synthInstance.maxHeartbeats 0 in
-/- Lemma : the degree of a chain of L.Length+1 nested subfields L[i] such that
+/- set_option synthInstance.maxHeartbeats 0 in
+ -//- Lemma : the degree of a chain of L.Length+1 nested subfields L[i] such that
 [L[i]:L[i-1]] = 2 has degree [L[L.Length]:L[0]] = 2^(L.Length)-/
 lemma Tower_Degree_pow_2 (L : RelSeries ((· ≤ ·) : Rel (IntermediateField ℚ ℂ) (IntermediateField ℚ ℂ)))
     (H : ∀ i, (hi : i < Fin.last L.length) →
-      letI := (IntermediateField.inclusion (ciao L hi)).toAlgebra.toModule
+      letI := (IntermediateField.inclusion (ciao L hi)).toAlgebra
       Module.finrank (L.toFun i) (L.toFun (i+1)) ∣ 2) :
       letI := (IntermediateField.inclusion (RelSeries_head_subset_last L)).toAlgebra
       Module.finrank L.head L.last ∣ 2 ^ L.length := by
@@ -218,7 +192,9 @@ lemma Tower_Degree_pow_2 (L : RelSeries ((· ≤ ·) : Rel (IntermediateField �
       rw [Equality_Degrees (L.head_snoc S hLS), Equality_Degrees' (L.last_snoc S hLS),
         ← Module.finrank_mul_finrank L.head L.last S]
       have : (L.snoc S hLS).length = L.length + 1 := by
-        aesop
+        rename_i this_1 this_2 this_3 this_4 this_5
+        simp_all only [AlgHom.toRingHom_eq_coe, RelSeries.snoc_length, Nat.add_left_cancel_iff, this_2, this_1,
+          this_3]
       rw [this, pow_add]
       simp
       apply mul_dvd_mul
@@ -229,7 +205,13 @@ lemma Tower_Degree_pow_2 (L : RelSeries ((· ≤ ·) : Rel (IntermediateField �
         have boh : (i+1).castSucc = i.castSucc + 1 := by
           ext
           simp [Fin.val_add_one]
-          aesop
+          rename_i this_1 this_2 this_3 this_4 this_5 this_6
+          simp_all only [AlgHom.toRingHom_eq_coe, RelSeries.snoc_length, Nat.add_left_cancel_iff, this_2, this_1,
+            this_3]
+          apply Aesop.BuiltinRules.not_intro
+          intro a
+          subst a
+          simp_all only [lt_self_iff_false]
         have := (L.snoc_castSucc S hLS (i+1))
         rw [boh] at this
         rwa [Equality_Degrees (L.snoc_castSucc S hLS i), Equality_Degrees' this] at H
