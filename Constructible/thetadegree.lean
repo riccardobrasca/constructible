@@ -18,7 +18,7 @@ local notation "h'" => (X ^ 3 - 3 * X - C 1 : Polynomial ℤ)
 lemma h_eq_h' : (map (Int.castRingHom ℚ) h') = h := by
   simp [map_ofNat]
 
-
+-- the degree of h
 lemma deg_h : (X ^ 3 - 3 * X - C 1 : Polynomial ℚ).natDegree = 3 := by
   compute_degree!
 

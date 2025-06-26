@@ -185,16 +185,15 @@ lemma Tower_Degree_pow_2 (L : RelSeries ((· ≤ ·) : Rel (IntermediateField �
           congr
           ext
           simp [Fin.coe_sub_one]
-        rwa [Equality_Degrees this] at H
+        rw [Equality_Degrees this] at H
+        sorry
       have : IsScalarTower L.head L.last S := IsScalarTower.of_algebraMap_eq (fun x ↦ rfl)
       have : Module.Free L.head L.last := Module.Free.of_divisionRing _ _
       have : Module.Free L.last S := Module.Free.of_divisionRing _ _
       rw [Equality_Degrees (L.head_snoc S hLS), Equality_Degrees' (L.last_snoc S hLS),
         ← Module.finrank_mul_finrank L.head L.last S]
       have : (L.snoc S hLS).length = L.length + 1 := by
-        rename_i this_1 this_2 this_3 this_4 this_5
-        simp_all only [AlgHom.toRingHom_eq_coe, RelSeries.snoc_length, Nat.add_left_cancel_iff, this_2, this_1,
-          this_3]
+        aesop
       rw [this, pow_add]
       simp
       apply mul_dvd_mul
@@ -205,13 +204,7 @@ lemma Tower_Degree_pow_2 (L : RelSeries ((· ≤ ·) : Rel (IntermediateField �
         have boh : (i+1).castSucc = i.castSucc + 1 := by
           ext
           simp [Fin.val_add_one]
-          rename_i this_1 this_2 this_3 this_4 this_5 this_6
-          simp_all only [AlgHom.toRingHom_eq_coe, RelSeries.snoc_length, Nat.add_left_cancel_iff, this_2, this_1,
-            this_3]
-          apply Aesop.BuiltinRules.not_intro
-          intro a
-          subst a
-          simp_all only [lt_self_iff_false]
+          aesop
         have := (L.snoc_castSucc S hLS (i+1))
         rw [boh] at this
         rwa [Equality_Degrees (L.snoc_castSucc S hLS i), Equality_Degrees' this] at H
