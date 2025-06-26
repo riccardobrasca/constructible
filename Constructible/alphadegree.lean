@@ -96,6 +96,7 @@ attribute [local instance 2000] NonUnitalSemiring.toNonUnitalNonAssocSemiring
   NonUnitalNonAssocSemiring.toAddCommMonoid
 
 -- [Q(alpha):Q] = 3
+set_option synthInstance.maxHeartbeats 60000 in
 theorem alpha_degree : finrank ℚ ℚα = 3 := by
   rw [adjoin.finrank is_integral_alpha, ← is_min_poly_f]
   compute_degree!
