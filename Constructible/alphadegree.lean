@@ -2,15 +2,14 @@ import Mathlib
 open Polynomial IntermediateField Module Ideal
 
 -- the cube root of 2
-local notation "α" => (2 : ℝ)^((1 : ℝ)/3)
+local notation "α" => (2 : ℂ)^((1 : ℂ)/3)
 
 -- alpha cubes to 2
 lemma alpha_cube : α ^ 3 = 2 := by
-  rw [Real.rpow_pow_comm (by norm_num), ← Real.rpow_natCast_mul (by norm_num)]
   simp
 
 -- Q adjoin the cube root of 2
-local notation "ℚα" => IntermediateField.adjoin ℚ {↑α}
+local notation "ℚα" => adjoin ℚ ({↑α} : Set ℂ)
 
 -- (what will eventually be) the minimal polynomial of alpha
 local notation "f" => (X ^ 3 - C 2 : Polynomial ℚ)
@@ -29,6 +28,19 @@ lemma is_monic_f : Monic f := by
 lemma is_monic_g : Monic g := by
   monicity!
 
+-- alpha is a root of f
+lemma is_root_alpha : (eval₂ (algebraMap ℚ ℂ) α f) = 0 := by
+  simp only [eval₂_sub, eval₂_pow, eval₂_X, eval₂_C]
+  rw [alpha_cube]
+  simp
+
+-- alpha is integral over Q
+lemma is_integral_alpha : IsIntegral ℚ α := by
+  use f
+  constructor
+  · exact is_monic_f
+  · exact is_root_alpha
+
 -- the ideal (2) in Z
 local notation "P" => ((Ideal.span {2}) : Ideal ℤ)
 
@@ -44,19 +56,6 @@ lemma one_not_in_ideal : ¬ (leadingCoeff g ∈ P) := by
   refine Monic.leadingCoeff_notMem this ?_
   refine IsPrime.ne_top ?_
   exact two_is_prime
-
--- alpha is a root of f
-lemma is_root_alpha : (eval₂ (algebraMap ℚ ℝ) α f) = 0 := by
-  simp only [eval₂_sub, eval₂_pow, eval₂_X, eval₂_C]
-  rw [alpha_cube]
-  simp
-
--- alpha is integral over Q
-lemma is_integral_alpha : IsIntegral ℚ α := by
-  use f
-  constructor
-  · exact is_monic_f
-  · exact is_root_alpha
 
 -- g is irreducible
 lemma is_irred_g : Irreducible g := by
@@ -86,17 +85,19 @@ lemma is_irred_f : Irreducible f := by
   exact (IsPrimitive.Int.irreducible_iff_irreducible_map_cast is_monic_g.isPrimitive).1 is_irred_g
 
 -- f is the minimal polynomial of alpha
-lemma is_min_poly_f : f = minpoly ℚ α := by
+lemma is_min_poly_f : f = minpoly ℚ (↑α : ℂ) := by
   apply minpoly.eq_of_irreducible_of_monic
   · exact is_irred_f
   · exact is_root_alpha
   · exact is_monic_f
 
 -- [Q(alpha):Q] = 3
+set_option synthInstance.maxHeartbeats 60000 in
 theorem alpha_degree : finrank ℚ ℚα = 3 := by
   rw [adjoin.finrank is_integral_alpha, ← is_min_poly_f]
   compute_degree!
 
+-- three does not divide any power of two
 theorem three_not_dvd_two_pow (n : ℕ) : ¬ (3 ∣ 2 ^ n) := by
   intro hdiv
   simpa using Nat.Prime.dvd_of_dvd_pow Nat.prime_three hdiv
