@@ -1,5 +1,5 @@
 import Mathlib
---import Constructible.alphadegree
+import Constructible.alphadegree
 import Constructible.Lemmas
 
 attribute [local instance 2000] Algebra.toModule Module.toDistribMulAction AddMonoid.toZero
@@ -135,10 +135,6 @@ lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔
             sorry
     sorry
 
-noncomputable instance (L : RelSeries ((· ≤ ·) : Rel (IntermediateField ℚ ℂ) (IntermediateField ℚ ℂ)))
-  (i : Fin (L.length + 1)) : Field (L.toFun i) := by
-  infer_instance
-
 lemma miao (L : RelSeries ((· ≤ ·) : Rel (IntermediateField ℚ ℂ) (IntermediateField ℚ ℂ)))
     {i j : Fin (L.length + 1)} (hij : i ≤ j) : L.toFun i ≤  L.toFun j := by
   have := L.rel_or_eq_of_le hij
@@ -262,3 +258,51 @@ lemma rank_eq_pow_two_of_isConstructible'' {x : ℂ} (h : IsConstructible x) :
     · have hT' : 0 < tail.length := by rwa [List.length_pos_iff, ne_eq]
       specialize ih hT'
     sorry -/
+
+open Module
+
+lemma bar {K : Type*} [Field K] [Algebra ℚ K] {F : IntermediateField ℚ K} {x : K}
+    (hx : x ∈ F) (hxalg : IsIntegral ℚ x) : (minpoly ℚ x).natDegree ∣ finrank ℚ K := by
+  sorry
+
+
+lemma adjoin_degree_dvd {F K : Type*} [Field F] [Field K] [Algebra F K] [FiniteDimensional F K] (x : K) :
+      finrank F (adjoin F {x}) ∣ finrank F K := by
+  rw [← finrank_mul_finrank F (adjoin F {x}) K]
+  exact Nat.dvd_mul_right (finrank F (adjoin F {x})) (finrank (adjoin F {x}) K)
+
+instance {F E : Type*} [Field F] [Field E] [Algebra F E] (K : IntermediateField F E) :
+    IsScalarTower F (⊥ : IntermediateField F E) K :=
+  IsScalarTower.of_algebraMap_eq (congrFun rfl)
+
+set_option synthInstance.maxHeartbeats 40000 in
+lemma rank_bot'' {F E : Type*} [Field F] [Field E] [Algebra F E] (K : IntermediateField F E) :
+  Module.rank (⊥ : IntermediateField F E) K = Module.rank F K := by
+  rw [← rank_mul_rank F (⊥ : IntermediateField F E) K, IntermediateField.rank_bot, one_mul]
+
+@[simp]
+lemma finrank_bot'' {F E : Type*} [Field F] [Field E] [Algebra F E]
+  (K : IntermediateField F E) :
+  finrank ((⊥ : IntermediateField F E)) ↥K = finrank F ↥K :=
+  congr(Cardinal.toNat $(rank_bot'' K))
+
+theorem degree_three_not_cons (x : ℂ) (hx : finrank ℚ (adjoin ℚ {x}) = 3) : ¬(IsConstructible x) := by
+  intro h
+  have h' := (isConstructible_iff x).mp h
+  rcases h' with ⟨a, b, c, d⟩
+  refine three_not_dvd_two_pow a.length ?_
+  have : finrank ℚ (adjoin ℚ {x}) ∣ finrank ℚ a.last := by
+    refine finrank_dvd_of_le_right ?_
+    exact adjoin_simple_le_iff.mpr b
+  rw [hx, ← finrank_bot'] at this
+  refine dvd_trans this ?_
+  have H := Tower_Degree_pow_2 a d
+  convert H
+  rw [Equality_Degrees c]
+  simp
+
+-- the cube root of 2
+local notation "α" => (2 : ℂ)^((1 : ℂ)/3)
+
+theorem cannot_double_cube : ¬(IsConstructible α) := by
+  exact degree_three_not_cons α alpha_degree

@@ -46,7 +46,7 @@ lemma foo'
 
   termination_by T₁ T₂ => T₂.length
 
-lemma miao (T₁ T₂ : RelSeries r) (h₁ : propRel P T₁) (h₂ : propRel P T₂)
+lemma miao' (T₁ T₂ : RelSeries r) (h₁ : propRel P T₁) (h₂ : propRel P T₂)
     (connect : r T₁.last T₂.head) (hP : P connect) :
     propRel P (T₁.append T₂ connect) := by
   refine foo' P ?_ T₁ T₂ h₁ h₂ connect hP
@@ -115,7 +115,7 @@ def append (T₁ T₂ : QuadraticTower K L) (connect_le : T₁.chain.last ≤ T�
     (connect_rank :  DegLeTwoExtension connect_le) : QuadraticTower K L where
   chain := T₁.chain.append T₂.chain connect_le
   quadratic :=
-    miao _ T₁.chain T₂.chain T₁.quadratic T₂.quadratic connect_le connect_rank
+    miao' _ T₁.chain T₂.chain T₁.quadratic T₂.quadratic connect_le connect_rank
 
 end QuadraticTower
 
