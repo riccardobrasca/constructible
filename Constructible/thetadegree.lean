@@ -16,7 +16,7 @@ local notation "h" => (X ^ 3 - 3 * X - C 1 : Polynomial ℚ)
 -- h viewed as a polynomial over ℤ
 local notation "h'" => (X ^ 3 - 3 * X - C 1 : Polynomial ℤ)
 
--- h is the image of h' in Q[x]
+-- h is the image of h' in ℚ[x]
 lemma h_eq_h' : (map (Int.castRingHom ℚ) h') = h := by
   simp [map_ofNat]
 
@@ -37,7 +37,7 @@ lemma beta_relation : 8 * β ^ 3 - 6 * β - 1 = 0 := by
   have rel1 : Complex.cos (3 * θ) = 4 * (Complex.cos θ) ^ 3 - 3 * (Complex.cos θ) := by
     rw [←Complex.cos_three_mul (θ)]
   have rel2 : 3 * ((π / 9) : ℂ) = ↑(π / 3) := by
-    ring
+    ring_nf
     simp only [one_div, Complex.ofReal_mul, Complex.ofReal_inv, Complex.ofReal_ofNat]
   rw [rel2] at rel1
   have rel3 : Complex.cos (↑(π / 3)) = 1 /2 := by
@@ -51,16 +51,17 @@ lemma beta_relation : 8 * β ^ 3 - 6 * β - 1 = 0 := by
   rw [←Eq.symm rel4]
   ring
 
+-- a relation on γ derived from the above relation on β
 lemma gamma_relation : γ ^ 3 - 3 * γ - 1 = 0 := by
   rw [← beta_relation]
   ring
 
--- gamma is a root of h. Only thing left to do!
+-- γ is a root of h
 lemma is_root_gamma : (eval₂ (algebraMap ℚ ℂ) γ h) = 0 := by
   rw [← gamma_relation]
   simp only [map_one, eval₂_sub, eval₂_X_pow, eval₂_mul, eval₂_ofNat, eval₂_X, eval₂_one]
 
--- alpha is integral over Q
+-- α is integral over ℚ
 lemma is_integral_gamma : IsIntegral ℚ γ := by
   use h
   constructor
@@ -76,7 +77,7 @@ lemma neg_one_not_root : ¬((aeval (-1 : ℚ)) h' = 0) := by
   simp [aeval]
   linarith
 
--- h' has no roots in Q
+-- h' has no roots in ℚ
 lemma h'_has_no_rational_roots : ∀ (x : ℚ), ¬((aeval x) h' = 0) := by
   intro x
   intro H
@@ -94,7 +95,7 @@ lemma h'_has_no_rational_roots : ∀ (x : ℚ), ¬((aeval x) h' = 0) := by
     rw [this2] at H
     exact neg_one_not_root H
 
--- h has no roots in Q
+-- h has no roots in ℚ
 lemma h_has_no_rational_roots : ∀ (x : ℚ), ¬((aeval x) h = 0) := by
   intro x hx
   apply h'_has_no_rational_roots x
@@ -111,14 +112,14 @@ lemma is_irred_h : Irreducible h := by
   · exact h_has_no_rational_roots
 
 
--- h is the minimal polynomial of beta
+-- h is the minimal polynomial of β
 lemma is_min_poly_h : h = minpoly ℚ (↑γ : ℂ) := by
   apply minpoly.eq_of_irreducible_of_monic
   · exact is_irred_h
   · exact is_root_gamma
   · exact is_monic_h
 
--- [Q(beta):Q] = 3
+-- [ℚ(β):ℚ] = 3
 set_option synthInstance.maxHeartbeats 60000 in
 theorem gamma_degree : finrank ℚ ℚγ = 3 := by
   rw [adjoin.finrank is_integral_gamma, ← is_min_poly_h]

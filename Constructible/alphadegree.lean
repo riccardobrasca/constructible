@@ -9,15 +9,16 @@ local notation "α" => (2 : ℂ)^((1 : ℂ)/3)
 lemma alpha_cube : α ^ 3 = 2 := by
   simp
 
--- Q adjoin the cube root of 2
+--  ℚ(α)
 local notation "ℚα" => adjoin ℚ ({↑α} : Set ℂ)
 
 -- (what will eventually be) the minimal polynomial of alpha
 local notation "f" => (X ^ 3 - C 2 : Polynomial ℚ)
 
+-- f viewed as a polynomial over ℤ
 local notation "g" => (X ^ 3 - C 2 : Polynomial ℤ)
 
--- f is the image of g in Q[x]
+-- f is the image of g in ℚ[x]
 lemma f_eq_g : (map (Int.castRingHom ℚ) g) = f := by
   simp [map_ofNat]
 
@@ -35,17 +36,17 @@ lemma is_root_alpha : (eval₂ (algebraMap ℚ ℂ) α f) = 0 := by
   rw [alpha_cube]
   simp
 
--- alpha is integral over Q
+-- alpha is integral over ℚ
 lemma is_integral_alpha : IsIntegral ℚ α := by
   use f
   constructor
   · exact is_monic_f
   · exact is_root_alpha
 
--- the ideal (2) in Z
+-- the ideal (2) in ℤ
 local notation "P" => ((Ideal.span {2}) : Ideal ℤ)
 
--- the ideal (2) is prime in Z
+-- the ideal (2) is prime in ℤ
 lemma two_is_prime : IsPrime P := by
   refine (span_singleton_prime ?_).mpr ?_
   · norm_num
@@ -92,10 +93,7 @@ lemma is_min_poly_f : f = minpoly ℚ (↑α : ℂ) := by
   · exact is_root_alpha
   · exact is_monic_f
 
-attribute [local instance 2000] NonUnitalSemiring.toNonUnitalNonAssocSemiring
-  NonUnitalNonAssocSemiring.toAddCommMonoid
-
--- [Q(alpha):Q] = 3
+-- [ℚ(α):ℚ] = 3
 set_option synthInstance.maxHeartbeats 60000 in
 theorem alpha_degree : finrank ℚ ℚα = 3 := by
   rw [adjoin.finrank is_integral_alpha, ← is_min_poly_f]
