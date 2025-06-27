@@ -17,8 +17,15 @@ def propRel (T : RelSeries r) : Prop :=
 
 open Fin RelSeries
 
+lemma Fin.eq_zero' {n : ℕ} (hn : n = 0) (i : Fin (n+1)) : i = 0 :=
+  (subsingleton_iff_le_one.2 (by omega)).1 _ _
+
+lemma length_zero {T : RelSeries r} (hT : T.length = 0) : ∃ x, T = singleton r x :=
+  ⟨T.head, ext (by simp [hT]) (funext fun i ↦ by simp [eq_zero' hT i, head])⟩
+
+
 lemma foo'
-    (hP : ∀ (T : RelSeries r) (x : α), propRel P T → (hx : r T.last (RelSeries.singleton r x).head)
+    (HP : ∀ (T : RelSeries r) (x : α), propRel P T → (hx : r T.last x)
       → (HP : P hx) → propRel P (T.snoc _ hx)) :
     ∀ (T₁ T₂ : RelSeries r), propRel P T₁ → propRel P T₂ → (connect : r T₁.last T₂.head) →
       (P connect) →
@@ -26,7 +33,8 @@ lemma foo'
     intro T₁ T₂ h₁ h₂ connect hP
     let x := T₂.head
     by_cases hlen : T₂.length = 0
-    · sorry
+    · obtain ⟨x, rfl⟩ := length_zero hlen
+      exact HP T₁ _ h₁ ‹_› ‹_›
     · let T₂':= T₂.drop ⟨1, by omega⟩
       let T₃ := T₁.append (singleton r x) connect
       have key : T₂'.length < T₂.length := by
@@ -52,30 +60,24 @@ lemma miao' (T₁ T₂ : RelSeries r) (h₁ : propRel P T₁) (h₂ : propRel P 
   refine foo' P ?_ T₁ T₂ h₁ h₂ connect hP
   intro T x hT connect hP i hi
   simp at hi
-  let i' := castPred i hi.ne
+  set i' := i.castPred hi.ne with hi'def
+  simp [RelSeries.append, RelSeries.snoc, append_right_eq_snoc]
   by_cases hi' : i' < Fin.last T.length
   · have := hT i' hi'
-    simp [RelSeries.append, RelSeries.singleton]
-    convert this using 1
-    · rw [← RelSeries.append_apply_left T (RelSeries.singleton r x) connect]
-      rfl
-    · rw [← RelSeries.append_apply_left T (RelSeries.singleton r x) connect]
-      congr
-      ext
-      simp [Fin.val_add_one, hi'.ne, hi.ne]
-      rfl
+    convert this
+    · rw [← castSucc_castPred i hi.ne, Fin.snoc_castSucc]
+    · suffices : i+1 ≠ Fin.last (T.length + 1)
+      · rw [← castSucc_castPred _ this, Fin.snoc_castSucc]
+        congr
+        simp [← val_eq_val, val_add_one_of_lt hi, val_add_one_of_lt hi', i']
+      refine fun h ↦ hi'.ne (castSucc_injective _ ?_)
+      simpa [val_add_one_of_lt hi, ← val_eq_val] using h
   · simp at hi'
     convert hP
-    · rw [RelSeries.last, ← hi',
-        ← RelSeries.append_apply_left T (RelSeries.singleton r x) connect]
-      rfl
-    · simp
-      apply_fun castSucc at hi'
+    · rw [← castSucc_castPred i hi.ne, Fin.snoc_castSucc, ← hi'def, hi', RelSeries.last]
+    · apply_fun castSucc at hi'
       simp [i'] at hi'
-      rw [hi']
-      simp
-
-
+      simp [hi']
 
 end test
 
