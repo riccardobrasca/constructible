@@ -201,10 +201,6 @@ open Module
 
 open Module
 
-lemma bar {K : Type*} [Field K] [Algebra ℚ K] {F : IntermediateField ℚ K} {x : K}
-    (hx : x ∈ F) (hxalg : IsIntegral ℚ x) : (minpoly ℚ x).natDegree ∣ finrank ℚ K := by
-  sorry
-
 
 lemma adjoin_degree_dvd {F K : Type*} [Field F] [Field K] [Algebra F K] [FiniteDimensional F K] (x : K) :
       finrank F (adjoin F {x}) ∣ finrank F K := by
@@ -247,11 +243,14 @@ local notation "α" => (2 : ℂ)^((1 : ℂ)/3)
 theorem cannot_double_cube : ¬(IsConstructible α) := by
   exact degree_three_not_cons α alpha_degree
 
+-- the angle which cannot be trisected
+local notation "θ₁" => Real.pi / 3
 
-local notation "θ" => Real.pi / 9
+-- θ₁'s non-constructible trisection
+local notation "θ₂" => Real.pi / 9
 
-local notation "β" => (Complex.cos (θ : ℂ))
-
+-- the value which cannot be constructed
+local notation "β" => (Complex.cos (θ₂ : ℂ))
 local notation "γ" => 2 * β
 
 theorem cannot_trisect_angle : ¬(IsConstructible γ) := by

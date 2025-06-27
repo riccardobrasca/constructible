@@ -5,14 +5,14 @@ open Polynomial IntermediateField Module Ideal
 -- the cube root of 2
 local notation "α" => (2 : ℂ)^((1 : ℂ)/3)
 
--- alpha cubes to 2
+-- α ^ 3 = 2
 lemma alpha_cube : α ^ 3 = 2 := by
   simp
 
 --  ℚ(α)
 local notation "ℚα" => adjoin ℚ ({↑α} : Set ℂ)
 
--- (what will eventually be) the minimal polynomial of alpha
+-- (what will eventually be) the minimal polynomial of α
 local notation "f" => (X ^ 3 - C 2 : Polynomial ℚ)
 
 -- f viewed as a polynomial over ℤ
@@ -30,13 +30,13 @@ lemma is_monic_f : Monic f := by
 lemma is_monic_g : Monic g := by
   monicity!
 
--- alpha is a root of f
+-- α is a root of f
 lemma is_root_alpha : (eval₂ (algebraMap ℚ ℂ) α f) = 0 := by
   simp only [eval₂_sub, eval₂_pow, eval₂_X, eval₂_C]
   rw [alpha_cube]
   simp
 
--- alpha is integral over ℚ
+-- α is integral over ℚ
 lemma is_integral_alpha : IsIntegral ℚ α := by
   use f
   constructor
@@ -86,7 +86,7 @@ lemma is_irred_f : Irreducible f := by
   rw [← f_eq_g]
   exact (IsPrimitive.Int.irreducible_iff_irreducible_map_cast is_monic_g.isPrimitive).1 is_irred_g
 
--- f is the minimal polynomial of alpha
+-- f is the minimal polynomial of α
 lemma is_min_poly_f : f = minpoly ℚ (↑α : ℂ) := by
   apply minpoly.eq_of_irreducible_of_monic
   · exact is_irred_f

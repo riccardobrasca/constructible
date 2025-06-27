@@ -1,13 +1,17 @@
 import Mathlib
 open Polynomial Real Module IntermediateField IsFractionRing
 
+-- the angle which cannot be trisected
+local notation "θ₁" => Real.pi / 3
 
-local notation "θ" => π/9
+-- θ₁'s non-constructible trisection
+local notation "θ₂" => Real.pi / 9
 
-local notation "β" => (Complex.cos (θ : ℂ))
-
+-- the value which cannot be constructed
+local notation "β" => (Complex.cos (θ₂ : ℂ))
 local notation "γ" => 2 * β
 
+-- this extension will have degree 3 and hence be non-constructible
 local notation "ℚγ" => IntermediateField.adjoin ℚ ({γ})
 
 -- (what will eventually be) the minimal polynomial of γ
