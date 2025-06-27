@@ -188,8 +188,6 @@ theorem foo {f e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂) :
   sorry
  -/
 
-#exit
-
 namespace QuadraticTower
 
 variable {K L : Type*} [Field K] [Field L] [Algebra K L]
@@ -216,16 +214,6 @@ lemma blah (x : ℂ) (F : IntermediateField ℚ ℂ) : F ≤ (IntermediateField.
 
 lemma help (x : ℂ) (F : IntermediateField ℚ ℂ) (h : x ^ 2 ∈ F) :
     DegLeTwoExtension (blah x F)  := by
-  sorry
-
-lemma head_of_append (T₁ T₂ : QuadraticTower K L) (connect_le : T₁.chain.last ≤ T₂.chain.head)
-      (connect_rank :  DegLeTwoExtension connect_le)
-      : (append T₁ T₂ connect_le connect_rank).chain.head = T₁.chain.head := by
-  sorry
-
-lemma last_of_append (T₁ T₂ : QuadraticTower K L) (connect_le : T₁.chain.last ≤ T₂.chain.head)
-      (connect_rank :  DegLeTwoExtension connect_le)
-      : (append T₁ T₂ connect_le connect_rank).chain.last = T₂.chain.last := by
   sorry
 
 lemma head_of_append (T₁ T₂ : QuadraticTower K L) (connect_le : T₁.chain.last ≤ T₂.chain.head)

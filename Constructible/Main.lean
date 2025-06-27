@@ -184,11 +184,6 @@ lemma Tower_Degree_pow_2 (L : RelSeries ((· ≤ ·) : Rel (IntermediateField �
 
 open Module
 
-
-        sorry
-      specialize HL this
-      exact HL
- -/
 /-   | nil => simp at hL
   | cons head tail ih =>
     by_cases hT : tail = []
@@ -226,20 +221,21 @@ lemma finrank_bot'' {F E : Type*} [Field F] [Field E] [Algebra F E]
 theorem degree_three_not_cons (x : ℂ) (hx : finrank ℚ (adjoin ℚ {x}) = 3) : ¬(IsConstructible x) := by
   intro h
   have h' := (isConstructible_iff x).mp h
-  rcases h' with ⟨a, b, c, d⟩
-  refine three_not_dvd_two_pow a.length ?_
-  have : finrank ℚ (adjoin ℚ {x}) ∣ finrank ℚ a.last := by
-    refine finrank_dvd_of_le_right ?_
-    exact adjoin_simple_le_iff.mpr b
-  rw [hx, ← finrank_bot'] at this
-  refine dvd_trans this ?_
-  have H := Tower_Degree_pow_2 a d
-  convert H
-  rw [Equality_Degrees c]
-  simp
+  sorry
+  -- rcases h' with ⟨a, b, c, d⟩
+  -- refine three_not_dvd_two_pow a.length ?_
+  -- have : finrank ℚ (adjoin ℚ {x}) ∣ finrank ℚ a.last := by
+  --   refine finrank_dvd_of_le_right ?_
+  --   exact adjoin_simple_le_iff.mpr b
+  -- rw [hx, ← finrank_bot'] at this
+  -- refine dvd_trans this ?_
+  -- have H := Tower_Degree_pow_2 a d
+  -- convert H
+  -- rw [Equality_Degrees c]
+  -- simp
 
 -- the cube root of 2
 local notation "α" => (2 : ℂ)^((1 : ℂ)/3)
-s
+
 theorem cannot_double_cube : ¬(IsConstructible α) := by
   exact degree_three_not_cons α alpha_degree
