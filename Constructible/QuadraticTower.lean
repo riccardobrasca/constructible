@@ -96,14 +96,12 @@ lemma miao' (T₁ T₂ : RelSeries r) (h₁ : propRel P T₁) (h₂ : propRel P 
   intro T x hT connect hP i hi
   simp [RelSeries.append, RelSeries.snoc, append_right_eq_snoc]
   by_cases hi' : i.castPred hi.ne < Fin.last T.length
-  · have := hT _ hi'
-    convert this
+  · convert hT _ hi'
     · exact snoc_eq_castPred_of_lt hi T.toFun x
     · exact snoc_add_one_castPred_of_lt hi hi' T.toFun x
-  · simp at hi'
-    convert hP
-    · exact snoc_eq_of_eq_last hi hi' T.toFun x
-    · exact snoc_add_one_of_eq_last hi hi' T.toFun x
+  · convert hP
+    · exact snoc_eq_of_eq_last hi (by simpa using hi') T.toFun x
+    · exact snoc_add_one_of_eq_last hi (by simpa using hi') T.toFun x
 
 end test
 
