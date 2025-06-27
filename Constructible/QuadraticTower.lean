@@ -142,7 +142,11 @@ theorem leee (f : IntermediateField K L) {e₁ e₂ : IntermediateField K L} (h 
 
 
 --set_option maxHeartbeats 0 in
-theorem foo {f e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂) :
+theorem degree_le {f e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂)
+    (h_unneccess? :
+    let ha : e₁ ≤ f ⊔ e₁ := le_sup_right
+    letI := (inclusion ha).toAlgebra.toModule
+    Module.finrank e₁ (f ⊔ e₁ : IntermediateField K L) ≠ 0):
     letI := (inclusion (leee f h)).toAlgebra.toModule
     letI := (inclusion h).toAlgebra.toModule
     Module.finrank (f ⊔ e₁ : IntermediateField K L) (f ⊔ e₂ : IntermediateField K L) ≤
@@ -155,39 +159,32 @@ theorem foo {f e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂) :
     rw [IntermediateField.extendScalars_le_extendScalars_iff]
     exact leee f h
   letI := (inclusion LE1).toAlgebra.toModule
-  have : FE₂ = FE₁ ⊔ E₂ := by
+  have Eq1 : FE₂ = FE₁ ⊔ E₂ := by
     rw [IntermediateField.extendScalars_sup]
     simp [FE₂]
     congr 1
     rw [sup_assoc]
     simp_all [sup_of_le_right, FE₂]
+  have LE2 : FE₁ ≤ FE₁ ⊔ E₂ := le_trans LE1 <| le_of_eq Eq1
   have : Module.finrank FE₁ FE₂ ≤ Module.finrank E₁ E₂ := by
-    rw [Equality_Degrees' this]
-    have := IntermediateField.finrank_sup_le FE₁ E₂
+    rw [Equality_Degrees' Eq1]
+    have key := IntermediateField.finrank_sup_le FE₁ E₂
     letI := (inclusion h).toAlgebra.toModule
-
+    let I := (inclusion  LE2).toAlgebra.toModule
+    have H_deg : Module.finrank ↥e₁ ↥(FE₁ ⊔ E₂) = Module.finrank ↥e₁ FE₁ * Module.finrank FE₁ ↥(FE₁ ⊔ E₂) := by
+      --refine (Module.finrank_mul_finrank ?_ ?_ ?_ ?_ ?_).symm
+      have :  Module.Free ↥e₁ ↥FE₁ := by
+        exact Module.Free.of_divisionRing ↥e₁ ↥FE₁
+      have :  Module.Free ↥FE₁ ↥(FE₁ ⊔ E₂) := by
+        exact Module.Free.of_divisionRing ↥FE₁ ↥(FE₁ ⊔ E₂)
+      have a := Module.finrank_mul_finrank e₁ FE₁ (FE₁ ⊔ E₂ : IntermediateField e₁ L)
+      exact id (Eq.symm a)
     --have a := Module.finrank_mul_finrank e₁ e₂ (f ⊔ e₁ : IntermediateField K L)
-    sorry
-
+    rw [H_deg] at key
+    have :  Module.finrank ↥e₁ ↥FE₁ ≠ 0 := h_unneccess?
+    field_simp [this] at key
+    exact key
   assumption
-  /- let E₁ := extendScalars (le_refl e₁)
-  let E₂ := extendScalars h
-  let FE₁ := extendScalars (F := e₁) (E := compositum f e₁) le_sup_right
-  let FE₂ := extendScalars (F := e₁) (E := compositum f e₂) (le_trans h le_sup_right)
-  have : FE₁ ≤ FE₂ := by
-    have := leee f h
-    simp_all only [FE₁, FE₂]
-
-    sorry
-
-  have : Module.finrank FE₁ FE₂ ≤ Module.finrank E₁ E₂ := by sorry
-
-  have : FE₂ = FE₁ ⊔ E₂ := by
-
-    sorry
-  sorry
- -/
-
 namespace QuadraticTower
 
 variable {K L : Type*} [Field K] [Field L] [Algebra K L]
