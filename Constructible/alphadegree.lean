@@ -1,4 +1,5 @@
 import Mathlib
+
 open Polynomial IntermediateField Module Ideal
 
 -- the cube root of 2
@@ -91,8 +92,10 @@ lemma is_min_poly_f : f = minpoly ℚ (↑α : ℂ) := by
   · exact is_root_alpha
   · exact is_monic_f
 
+attribute [local instance 2000] NonUnitalSemiring.toNonUnitalNonAssocSemiring
+  NonUnitalNonAssocSemiring.toAddCommMonoid
+
 -- [Q(alpha):Q] = 3
-set_option synthInstance.maxHeartbeats 60000 in
 theorem alpha_degree : finrank ℚ ℚα = 3 := by
   rw [adjoin.finrank is_integral_alpha, ← is_min_poly_f]
   compute_degree!
