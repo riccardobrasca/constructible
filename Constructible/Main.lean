@@ -1,7 +1,7 @@
 import Mathlib
 import Constructible.alphadegree
 import Constructible.Lemmas
-import Constructible.thetadegree
+import Constructible.QuadraticTower
 
 attribute [local instance 2000] Algebra.toModule Module.toDistribMulAction AddMonoid.toZero
   DistribMulAction.toMulAction MulAction.toSMul
@@ -13,7 +13,7 @@ attribute [local instance 2000] Algebra.toModule Module.toDistribMulAction AddMo
 /- Inductive Definition of constructible number : constructibles are
  closed under addition, multiplication, inverse, negation, and square root-/
 
-open IntermediateField
+open IntermediateField QuadraticTower
 
 inductive IsConstructible : ℂ → Prop
   | base (α : ℚ) : IsConstructible (algebraMap ℚ ℂ α)
@@ -51,22 +51,13 @@ lemma RelSeries_head_subset_last (L : RelSeries (α := IntermediateField ℚ ℂ
   · simp [h]
     rfl
 
-
-lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔
-    ∃ L : RelSeries (α := IntermediateField ℚ ℂ) (· ≤ ·), x ∈ L.last ∧ L.head = ⊥ ∧
-    ∀ i, (hi : i < Fin.last L.length) →
-      letI := (IntermediateField.inclusion (ciao L hi)).toAlgebra.toModule
-      Module.finrank (L.toFun i) (L.toFun (i + 1)) ∣ 2 := by
+lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔ ∃ (T : QuadraticTower ℚ ℂ), T.chain.head = ⊥ ∧
+    x ∈ T.chain.last := by
     constructor
     · intro h
       induction h with
-      | base _ =>
-        let L := RelSeries.singleton (α := IntermediateField ℚ ℂ) (· ≤ ·) ⊥
-        use L
-        simp_all only [RelSeries.last_singleton, eq_ratCast, RelSeries.head_singleton, RelSeries.singleton_length,
-          Nat.reduceAdd, Fin.last_zero, Fin.isValue, Fin.not_lt_zero, RelSeries.singleton_toFun, Module.finrank_self,
-          isUnit_iff_eq_one, IsUnit.dvd, implies_true, and_self, and_true, L]
-        apply SubfieldClass.ratCast_mem
+      | base x =>
+        exact ⟨⟨RelSeries.singleton _ ⊥, by simp⟩, by simp, IntermediateField.algebraMap_mem ⊥ x⟩
       | add x y _ _ _ _ =>
         sorry
       | neg _ _ _ =>
@@ -75,19 +66,31 @@ lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔
       | inv x _ _ =>
         simp_all only [inv_mem_iff]
       | rad x hx H =>
-        obtain ⟨L, hLx2, h0, H'⟩ := H
-        by_cases h : x ∈ L.last
-        · use L
-        · let K := (IntermediateField.adjoin L.last {x}).restrictScalars ℚ
-          have hK : L.last ≤ K := by
-            have := adjoin_contains_field_as_subfield {x} L.last.toSubfield
+        obtain ⟨T, hQ, hl⟩ := H
+        --obtain ⟨L, hLx2, h0, H'⟩ := H
+        by_cases h : x ∈ T.chain.last
+        · use T
+        · let K := (IntermediateField.adjoin T.chain.last {x}).restrictScalars ℚ
+          have hK : T.chain.last ≤ K := by
+            have := adjoin_contains_field_as_subfield {x} T.chain.last.toSubfield
             simp_all only [AlgHom.toRingHom_eq_coe, coe_toSubfield, coe_type_toSubfield, ge_iff_le, K]
             exact this
-          let L' := L.snoc K hK
-          use L'
+          let K' := singleton K
+          have h1 : K = K'.chain.head := by
+            sorry
+          have hleq : T.chain.last ≤ K'.chain.head := by
+            rw [←h1]
+            exact hK
+          --   have t := adjoin_contains_field_as_subfield {x} T.chain.last.toSubfield
+          --   simp_all only [AlgHom.toRingHom_eq_coe, coe_toSubfield, coe_type_toSubfield, ge_iff_le, K]
+          --   exa
+          --   sorry
+          --T.chain.snoc K hK
+          let T' := append T K' hleq (help x T.chain.last hl)
+          use T'
           constructor
-          · simp [L', K]
-            exact mem_adjoin_simple_self (↥L.last) x
+          · convert hQ using 1
+            exact head_of_append T K' hleq (help x T.chain.last hl)
           /- have : Algebra L.last (IntermediateField.adjoin L.last {x}) := by
             sorry -/
           /- have hL' : L.last ≤ (IntermediateField.adjoin L.last {x}) := by
@@ -99,14 +102,12 @@ lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔
 
           --let L' := L.snoc (IntermediateField.adjoin L.last {x})
 
-          · have : L'.head = L.head := by
-              aesop
-            rw [this]
-            refine ⟨h0, ?_⟩
-            intro i hi
-            simp [L']
-            --specialize H' i hi
-            sorry
+          · suffices : T'.chain.last = K'.chain.last
+            · rw [this]
+              simp [K', QuadraticTower.singleton, K]
+              exact mem_adjoin_simple_self _ x
+             --IntermediateField.subset_adjoin T.chain.last ({x})
+            · exact last_of_append T K' hleq (help x T.chain.last hl)
     sorry
 
 lemma miao (L : RelSeries ((· ≤ ·) : Rel (IntermediateField ℚ ℂ) (IntermediateField ℚ ℂ)))
@@ -239,19 +240,6 @@ theorem degree_three_not_cons (x : ℂ) (hx : finrank ℚ (adjoin ℚ {x}) = 3) 
 
 -- the cube root of 2
 local notation "α" => (2 : ℂ)^((1 : ℂ)/3)
-
+s
 theorem cannot_double_cube : ¬(IsConstructible α) := by
   exact degree_three_not_cons α alpha_degree
-
--- the angle which cannot be trisected
-local notation "θ₁" => Real.pi / 3
-
--- θ₁'s non-constructible trisection
-local notation "θ₂" => Real.pi / 9
-
--- the value which cannot be constructed
-local notation "β" => (Complex.cos (θ₂ : ℂ))
-local notation "γ" => 2 * β
-
-theorem cannot_trisect_angle : ¬(IsConstructible γ) := by
-  exact degree_three_not_cons γ gamma_degree
