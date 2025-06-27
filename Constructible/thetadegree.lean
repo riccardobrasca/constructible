@@ -4,11 +4,13 @@ open Polynomial Real Module IntermediateField IsFractionRing
 
 local notation "θ" => π/9
 
-local notation "β" => (cos θ : ℂ)
+local notation "β" => (Complex.cos (θ : ℂ))
 
-local notation "ℚβ" => IntermediateField.adjoin ℚ ({β} : Set ℂ)
+local notation "γ" => 2 * β
 
--- (what will eventually be) the minimal polynomial of β
+local notation "ℚγ" => IntermediateField.adjoin ℚ ({γ})
+
+-- (what will eventually be) the minimal polynomial of γ
 local notation "h" => (X ^ 3 - 3 * X - C 1 : Polynomial ℚ)
 
 -- h viewed as a polynomial over ℤ
@@ -30,17 +32,40 @@ lemma is_monic_h : Monic h := by
 lemma is_monic_h' : Monic h' := by
   monicity!
 
--- beta is a root of h. Only thing left to do!
-lemma is_root_beta : (eval₂ (algebraMap ℚ ℂ) β h) = 0 := by
-  simp only [eval₂_sub, eval₂_pow, eval₂_X, eval₂_C]
-  sorry
+-- a relation from the triple angle formula for β
+lemma beta_relation : 8 * β ^ 3 - 6 * β - 1 = 0 := by
+  have rel1 : Complex.cos (3 * θ) = 4 * (Complex.cos θ) ^ 3 - 3 * (Complex.cos θ) := by
+    rw [←Complex.cos_three_mul (θ)]
+  have rel2 : 3 * ((π / 9) : ℂ) = ↑(π / 3) := by
+    ring
+    simp only [one_div, Complex.ofReal_mul, Complex.ofReal_inv, Complex.ofReal_ofNat]
+  rw [rel2] at rel1
+  have rel3 : Complex.cos (↑(π / 3)) = 1 /2 := by
+    rw [←Complex.ofReal_cos (π / 3)]
+    simp only [cos_pi_div_three, one_div, Complex.ofReal_inv, Complex.ofReal_ofNat]
+  rw [rel3] at rel1
+  have rel4 : 2 * 1 / 2 = 2 * (4 * Complex.cos (π / 9) ^ 3 - 3 * Complex.cos (π / 9)) := by
+    rw [← rel1]
+    ring
+  simp at rel4
+  rw [←Eq.symm rel4]
+  ring
+
+lemma gamma_relation : γ ^ 3 - 3 * γ - 1 = 0 := by
+  rw [← beta_relation]
+  ring
+
+-- gamma is a root of h. Only thing left to do!
+lemma is_root_gamma : (eval₂ (algebraMap ℚ ℂ) γ h) = 0 := by
+  rw [← gamma_relation]
+  simp only [map_one, eval₂_sub, eval₂_X_pow, eval₂_mul, eval₂_ofNat, eval₂_X, eval₂_one]
 
 -- alpha is integral over Q
-lemma is_integral_beta : IsIntegral ℚ β := by
+lemma is_integral_gamma : IsIntegral ℚ γ := by
   use h
   constructor
   · exact is_monic_h
-  · exact is_root_beta
+  · exact is_root_gamma
 
 -- 1 is not a root of h'
 lemma one_not_root : ¬((aeval (1 : ℚ)) h' = 0) := by
@@ -87,14 +112,14 @@ lemma is_irred_h : Irreducible h := by
 
 
 -- h is the minimal polynomial of beta
-lemma is_min_poly_h : h = minpoly ℚ (↑β : ℂ) := by
+lemma is_min_poly_h : h = minpoly ℚ (↑γ : ℂ) := by
   apply minpoly.eq_of_irreducible_of_monic
   · exact is_irred_h
-  · exact is_root_beta
+  · exact is_root_gamma
   · exact is_monic_h
 
 -- [Q(beta):Q] = 3
 set_option synthInstance.maxHeartbeats 60000 in
-theorem beta_degree : finrank ℚ ℚβ = 3 := by
-  rw [adjoin.finrank is_integral_beta, ← is_min_poly_h]
+theorem beta_degree : finrank ℚ ℚγ = 3 := by
+  rw [adjoin.finrank is_integral_gamma, ← is_min_poly_h]
   compute_degree!
