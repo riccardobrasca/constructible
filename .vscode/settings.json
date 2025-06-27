@@ -1,11 +1,15 @@
 {
     "files.exclude": {
         "**/.git": true,
+        "**/.lake": true,
+        "**/.github": true,
         "**/.DS_Store": true,
         "**/*.olean": true,
         "**/.DS_yml": true,
         "**/.gitpod.yml": true,
         "**/.vscode": true,
+        "lakefile.toml": true,
+        "README.md": true,
 	".docker": true,
 	"build": true,
 	"html": true,
