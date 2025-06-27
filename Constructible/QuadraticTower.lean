@@ -110,16 +110,85 @@ end test
 
 namespace IntermediateField
 
-variable (K L : Type*) [Field K] [Field L] [Algebra K L]
+variable {K L : Type*} [Field K] [Field L] [Algebra K L]
 
-def DegLeTwoExtension {K L : Type*} [Field K] [Field L] [Algebra K L] {F₁ F₂ : IntermediateField K L}
+def DegLeTwoExtension {F₁ F₂ : IntermediateField K L}
     (h_le : F₁ ≤ F₂) : Prop :=
   letI := (IntermediateField.inclusion h_le).toAlgebra.toModule
   Module.finrank F₁ F₂ ∣ 2
 
-structure QuadraticTower where
+structure QuadraticTower (K L : Type*) [Field K] [Field L] [Algebra K L] where
   chain : RelSeries (α := IntermediateField K L) (· ≤ ·)
   quadratic : ∀ i, (hi : i < Fin.last chain.length) → DegLeTwoExtension (ciao chain hi)
+
+def compositum (F : IntermediateField K L) :
+    ((· ≤ ·) :  IntermediateField K L → IntermediateField K L → Prop) →r
+    ((· ≤ ·) :  IntermediateField K L → IntermediateField K L → Prop) where
+      toFun := fun K' ↦ F ⊔ K'
+      map_rel' := @fun K' K'' h ↦ by
+        simp only [sup_le_iff, le_sup_left, true_and]
+        apply le_trans h
+        exact le_sup_right
+
+theorem leee' (f : IntermediateField K L) {e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂) :
+    (compositum f e₁) ≤ (compositum f e₂) := by
+  simp [compositum]
+  apply le_trans h
+  exact le_sup_right
+
+theorem leee (f : IntermediateField K L) {e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂) :
+     f ⊔ e₁ ≤ f ⊔ e₂ := by
+  gcongr
+
+
+--set_option maxHeartbeats 0 in
+theorem foo {f e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂) :
+    letI := (inclusion (leee f h)).toAlgebra.toModule
+    letI := (inclusion h).toAlgebra.toModule
+    Module.finrank (f ⊔ e₁ : IntermediateField K L) (f ⊔ e₂ : IntermediateField K L) ≤
+    Module.finrank e₁ e₂:= by
+  let E₁ := extendScalars (le_refl e₁)
+  let E₂ := extendScalars h
+  let FE₁ := extendScalars (F := e₁) (E := f ⊔ e₁) le_sup_right
+  let FE₂ := extendScalars (F := e₁) (E := f ⊔ e₂) (le_trans h le_sup_right)
+  have LE1 : FE₁ ≤ FE₂ := by
+    rw [IntermediateField.extendScalars_le_extendScalars_iff]
+    exact leee f h
+  letI := (inclusion LE1).toAlgebra.toModule
+  have : FE₂ = FE₁ ⊔ E₂ := by
+    rw [IntermediateField.extendScalars_sup]
+    simp [FE₂]
+    congr 1
+    rw [sup_assoc]
+    simp_all [sup_of_le_right, FE₂]
+  have : Module.finrank FE₁ FE₂ ≤ Module.finrank E₁ E₂ := by
+    rw [Equality_Degrees' this]
+    have := IntermediateField.finrank_sup_le FE₁ E₂
+    letI := (inclusion h).toAlgebra.toModule
+
+    --have a := Module.finrank_mul_finrank e₁ e₂ (f ⊔ e₁ : IntermediateField K L)
+    sorry
+
+  assumption
+  /- let E₁ := extendScalars (le_refl e₁)
+  let E₂ := extendScalars h
+  let FE₁ := extendScalars (F := e₁) (E := compositum f e₁) le_sup_right
+  let FE₂ := extendScalars (F := e₁) (E := compositum f e₂) (le_trans h le_sup_right)
+  have : FE₁ ≤ FE₂ := by
+    have := leee f h
+    simp_all only [FE₁, FE₂]
+
+    sorry
+
+  have : Module.finrank FE₁ FE₂ ≤ Module.finrank E₁ E₂ := by sorry
+
+  have : FE₂ = FE₁ ⊔ E₂ := by
+
+    sorry
+  sorry
+ -/
+
+#exit
 
 namespace QuadraticTower
 
@@ -141,6 +210,15 @@ def append (T₁ T₂ : QuadraticTower K L) (connect_le : T₁.chain.last ≤ T�
   chain := T₁.chain.append T₂.chain connect_le
   quadratic :=
     miao' _ T₁.chain T₂.chain T₁.quadratic T₂.quadratic connect_le connect_rank
+
+
+def compositum (T : QuadraticTower K L) (K' : IntermediateField K L) :
+    QuadraticTower K L where
+  chain := T.chain.map (IntermediateField.compositum K')
+  quadratic := fun i hi => by
+    simp [DegLeTwoExtension, IntermediateField.compositum]
+
+    sorry
 
 end QuadraticTower
 
