@@ -38,8 +38,8 @@ lemma is_monic_h' : Monic h' := by
 
 -- a relation from the triple angle formula for β
 lemma beta_relation : 8 * β ^ 3 - 6 * β - 1 = 0 := by
-  have rel1 : Complex.cos (3 * θ) = 4 * (Complex.cos θ) ^ 3 - 3 * (Complex.cos θ) := by
-    rw [←Complex.cos_three_mul (θ)]
+  have rel1 : Complex.cos (3 * θ₂) = 4 * (Complex.cos θ₂) ^ 3 - 3 * (Complex.cos θ₂) := by
+    rw [←Complex.cos_three_mul (θ₂)]
   have rel2 : 3 * ((π / 9) : ℂ) = ↑(π / 3) := by
     ring_nf
     simp only [one_div, Complex.ofReal_mul, Complex.ofReal_inv, Complex.ofReal_ofNat]
