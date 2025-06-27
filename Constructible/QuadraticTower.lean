@@ -18,7 +18,7 @@ lemma Fin.castPred_succ_eq_add_one {n : ℕ} {i : Fin (n+1)} (hi : i ≠ last n)
     (i.castPred hi).succ = i + 1 :=
   Fin.ext (by simp [val_add_one, hi])
 
-@[simp]
+
 lemma Fin.snoc_add_one_castPred_of_lt {n : ℕ} {T : Type*} {i : Fin (n+1+1)} (hi : i < last (n+1))
     (hi' : i.castPred hi.ne < last n) (f : Fin (n+1) → T) (x : T) :
     snoc (α := fun _ ↦ T) f x (i+1) = f (i.castPred hi.ne+1) := by
