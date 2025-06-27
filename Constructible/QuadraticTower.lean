@@ -211,14 +211,22 @@ def append (T₁ T₂ : QuadraticTower K L) (connect_le : T₁.chain.last ≤ T�
   quadratic :=
     miao' _ T₁.chain T₂.chain T₁.quadratic T₂.quadratic connect_le connect_rank
 
+lemma blah (x : ℂ) (F : IntermediateField ℚ ℂ) : F ≤ (IntermediateField.adjoin F {x}).restrictScalars ℚ := by
+  sorry
 
-def compositum (T : QuadraticTower K L) (K' : IntermediateField K L) :
-    QuadraticTower K L where
-  chain := T.chain.map (IntermediateField.compositum K')
-  quadratic := fun i hi => by
-    simp [DegLeTwoExtension, IntermediateField.compositum]
+lemma help (x : ℂ) (F : IntermediateField ℚ ℂ) (h : x ^ 2 ∈ F) :
+    DegLeTwoExtension (blah x F)  := by
+  sorry
 
-    sorry
+lemma head_of_append (T₁ T₂ : QuadraticTower K L) (connect_le : T₁.chain.last ≤ T₂.chain.head)
+      (connect_rank :  DegLeTwoExtension connect_le)
+      : (append T₁ T₂ connect_le connect_rank).chain.head = T₁.chain.head := by
+  sorry
+
+lemma last_of_append (T₁ T₂ : QuadraticTower K L) (connect_le : T₁.chain.last ≤ T₂.chain.head)
+      (connect_rank :  DegLeTwoExtension connect_le)
+      : (append T₁ T₂ connect_le connect_rank).chain.last = T₂.chain.last := by
+  sorry
 
 lemma head_of_append (T₁ T₂ : QuadraticTower K L) (connect_le : T₁.chain.last ≤ T₂.chain.head)
       (connect_rank :  DegLeTwoExtension connect_le)
