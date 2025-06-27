@@ -19,7 +19,7 @@ open Fin RelSeries
 
 lemma foo'
     (hP : ∀ (T : RelSeries r) (x : α), propRel P T → (hx : r T.last (RelSeries.singleton r x).head)
-      → (HP : P hx) → propRel P (T.append (RelSeries.singleton r x) hx)) :
+      → (HP : P hx) → propRel P (T.snoc _ hx)) :
     ∀ (T₁ T₂ : RelSeries r), propRel P T₁ → propRel P T₂ → (connect : r T₁.last T₂.head) →
       (P connect) →
       propRel P (T₁.append T₂ connect) := by
@@ -55,6 +55,7 @@ lemma miao' (T₁ T₂ : RelSeries r) (h₁ : propRel P T₁) (h₂ : propRel P 
   let i' := castPred i hi.ne
   by_cases hi' : i' < Fin.last T.length
   · have := hT i' hi'
+    simp [RelSeries.append, RelSeries.singleton]
     convert this using 1
     · rw [← RelSeries.append_apply_left T (RelSeries.singleton r x) connect]
       rfl
@@ -68,16 +69,11 @@ lemma miao' (T₁ T₂ : RelSeries r) (h₁ : propRel P T₁) (h₂ : propRel P 
     · rw [RelSeries.last, ← hi',
         ← RelSeries.append_apply_left T (RelSeries.singleton r x) connect]
       rfl
-    · rw [RelSeries.head, ← RelSeries.append_apply_right T (RelSeries.singleton r x) connect]
-      simp
-      congr
+    · simp
       apply_fun castSucc at hi'
       simp [i'] at hi'
       rw [hi']
-      ext
       simp
-      refine Eq.symm (Nat.mod_eq_of_lt ?_)
-      omega
 
 
 
