@@ -120,6 +120,6 @@ lemma is_min_poly_h : h = minpoly ℚ (↑γ : ℂ) := by
 
 -- [Q(beta):Q] = 3
 set_option synthInstance.maxHeartbeats 60000 in
-theorem beta_degree : finrank ℚ ℚγ = 3 := by
+theorem gamma_degree : finrank ℚ ℚγ = 3 := by
   rw [adjoin.finrank is_integral_gamma, ← is_min_poly_h]
   compute_degree!
