@@ -114,8 +114,7 @@ variable {K L : Type*} [Field K] [Field L] [Algebra K L]
 
 def DegLeTwoExtension {F₁ F₂ : IntermediateField K L}
     (h_le : F₁ ≤ F₂) : Prop :=
-  letI := (IntermediateField.inclusion h_le).toAlgebra.toModule
-  Module.finrank F₁ F₂ ∣ 2
+  Module.finrank F₁ (extendScalars h_le) ∣ 2
 
 structure QuadraticTower (K L : Type*) [Field K] [Field L] [Algebra K L] where
   chain : RelSeries (α := IntermediateField K L) (· ≤ ·)
