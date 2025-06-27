@@ -1,6 +1,7 @@
 import Mathlib
 import Constructible.alphadegree
 import Constructible.Lemmas
+import Constructible.thetadegree
 
 attribute [local instance 2000] Algebra.toModule Module.toDistribMulAction AddMonoid.toZero
   DistribMulAction.toMulAction MulAction.toSMul
@@ -183,6 +184,28 @@ lemma Tower_Degree_pow_2 (L : RelSeries ((· ≤ ·) : Rel (IntermediateField �
 open Module
 
 
+        sorry
+      specialize HL this
+      exact HL
+ -/
+/-   | nil => simp at hL
+  | cons head tail ih =>
+    by_cases hT : tail = []
+    · use 0
+      simp_all
+      --have := H.1
+      exact finrank_span_singleton hx0
+    · have hT' : 0 < tail.length := by rwa [List.length_pos_iff, ne_eq]
+      specialize ih hT'
+    sorry -/
+
+open Module
+
+lemma bar {K : Type*} [Field K] [Algebra ℚ K] {F : IntermediateField ℚ K} {x : K}
+    (hx : x ∈ F) (hxalg : IsIntegral ℚ x) : (minpoly ℚ x).natDegree ∣ finrank ℚ K := by
+  sorry
+
+
 lemma adjoin_degree_dvd {F K : Type*} [Field F] [Field K] [Algebra F K] [FiniteDimensional F K] (x : K) :
       finrank F (adjoin F {x}) ∣ finrank F K := by
   rw [← finrank_mul_finrank F (adjoin F {x}) K]
@@ -223,3 +246,13 @@ local notation "α" => (2 : ℂ)^((1 : ℂ)/3)
 
 theorem cannot_double_cube : ¬(IsConstructible α) := by
   exact degree_three_not_cons α alpha_degree
+
+
+local notation "θ" => Real.pi / 9
+
+local notation "β" => (Complex.cos (θ : ℂ))
+
+local notation "γ" => 2 * β
+
+theorem cannot_trisect_angle : ¬(IsConstructible γ) := by
+  exact degree_three_not_cons γ gamma_degree
