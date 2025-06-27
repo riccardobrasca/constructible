@@ -220,6 +220,16 @@ def compositum (T : QuadraticTower K L) (K' : IntermediateField K L) :
 
     sorry
 
+lemma head_of_append (T₁ T₂ : QuadraticTower K L) (connect_le : T₁.chain.last ≤ T₂.chain.head)
+      (connect_rank :  DegLeTwoExtension connect_le)
+      : (append T₁ T₂ connect_le connect_rank).chain.head = T₁.chain.head := by
+  sorry
+
+lemma last_of_append (T₁ T₂ : QuadraticTower K L) (connect_le : T₁.chain.last ≤ T₂.chain.head)
+      (connect_rank :  DegLeTwoExtension connect_le)
+      : (append T₁ T₂ connect_le connect_rank).chain.last = T₂.chain.last := by
+  sorry
+
 end QuadraticTower
 
 end IntermediateField
