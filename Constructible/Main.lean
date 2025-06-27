@@ -40,33 +40,6 @@ lemma IsConstructible.induction (P : ℂ → Prop) {α : ℂ} (hα : IsConstruct
   · exact fun α a a_ih => inv α a_ih
   · exact fun α a a_ih => rad α a_ih
 
-lemma rank_eq_pow_two_of_isConstructible {x : ℂ} (h : IsConstructible x) :
-    ∃ n, x ≠ 0 → Module.finrank ℚ (Submodule.span ℚ {x}) = 2 ^ n := by
-  induction h with
-  | base α =>
-    use 0
-    intro hα
-    simpa using finrank_span_singleton hα
-  | add α β _ _ _ _ => sorry
-  | neg α _ _ => sorry
-  | mul α β _ _ _ _ => sorry
-  | inv α _ _ => sorry
-  | rad α _ _ => sorry
-
-lemma minpoly_degree_eq_pow_two_of_isConstructible {x : ℂ} (h : IsConstructible x) :
-    ∃ n, x ≠ 0 → (minpoly ℚ x).natDegree = 2 ^ n := by
-  induction h with
-  | base α =>
-    use 0
-    intro hx
-    exact minpoly.natDegree_eq_one_iff.mpr <| RingHom.mem_range_self (algebraMap ℚ ℂ) α
-  | add α β _ _ _ _ => sorry
-  | neg α _ _ => sorry
-  | mul α β _ _ _ _ => sorry
-  | inv α _ _ => sorry
-  | rad α _ _ => sorry
-
-
 
 /-Lemma stating that the first subfield L[0] of a chain of nested subfields L is a
 subfield of the last subfield L[L.length] in the chain-/
@@ -181,8 +154,7 @@ lemma Tower_Degree_pow_2 (L : RelSeries ((· ≤ ·) : Rel (IntermediateField �
           congr
           ext
           simp [Fin.coe_sub_one]
-        rw [Equality_Degrees this] at H
-        sorry
+        rwa [Equality_Degrees this] at H
       have : IsScalarTower L.head L.last S := IsScalarTower.of_algebraMap_eq (fun x ↦ rfl)
       have : Module.Free L.head L.last := Module.Free.of_divisionRing _ _
       have : Module.Free L.last S := Module.Free.of_divisionRing _ _
@@ -207,63 +179,8 @@ lemma Tower_Degree_pow_2 (L : RelSeries ((· ≤ ·) : Rel (IntermediateField �
 
       exact key
 
-lemma rank_eq_pow_two_of_isConstructible' {x : ℂ} (h : IsConstructible x) :
-    ∃ n, x ≠ 0 → Module.finrank ℚ (Submodule.span ℚ {x}) = 2 ^ n := by
-  rw[isConstructible_iff] at h
-  obtain ⟨ n , f, h1, h2 ⟩ := h
-  sorry
-
-lemma rank_eq_pow_two_of_isConstructible'' {x : ℂ} (h : IsConstructible x) :
-    ∃ n, x ≠ 0 → Module.finrank ℚ (Submodule.span ℚ {x}) = 2 ^ n := by
-  rw[isConstructible_iff] at h
-  obtain ⟨L , hL, h0, H⟩ := h
-  sorry
-  /- have : L ≠ [] := List.ne_nil_of_length_pos hL
-
-  by_cases hx0 : x = 0
-  · use 0
-    simp_all
-  induction L, this using List.recNeNil generalizing x with
-  | singleton S =>
-      use 0
-      simp_all
-  | cons S L' h HL =>
-      have : 0 < L'.length := by rwa [List.length_pos_iff, ne_eq]
-
-      specialize HL (x := x) this
-      have :  L'[L'.length - 1] = ⊥ := by
-        rw [← h0]
-        simp
-        rw [@List.getElem_length_sub_one_eq_getLast]
-        rw [List.getElem_cons_length rfl]
-        simp_all
-      specialize HL this
-      have : x ∈ L'[0] ∧ (∃ h1 : 1 < L'.length, x ∉ L'[1]) ∧ ∀ i, (hi : i < L'.length) → ∃ (h : L'[i] ≤ L'[i-1]),
-        letI : Module L'[i] L'[i-1] := (Subfield.inclusion h).toAlgebra.toModule
-        Module.finrank L'[i] L'[i-1] = 2 := by
-        constructor
-        · sorry
-
-        sorry
-      specialize HL this
-      exact HL
- -/
-/-   | nil => simp at hL
-  | cons head tail ih =>
-    by_cases hT : tail = []
-    · use 0
-      simp_all
-      --have := H.1
-      exact finrank_span_singleton hx0
-    · have hT' : 0 < tail.length := by rwa [List.length_pos_iff, ne_eq]
-      specialize ih hT'
-    sorry -/
 
 open Module
-
-lemma bar {K : Type*} [Field K] [Algebra ℚ K] {F : IntermediateField ℚ K} {x : K}
-    (hx : x ∈ F) (hxalg : IsIntegral ℚ x) : (minpoly ℚ x).natDegree ∣ finrank ℚ K := by
-  sorry
 
 
 lemma adjoin_degree_dvd {F K : Type*} [Field F] [Field K] [Algebra F K] [FiniteDimensional F K] (x : K) :
