@@ -1,21 +1,11 @@
 import Mathlib
 import Constructible.Lemmas
 
-section test
+open Fin RelSeries
 
 variable {α : Type*} {r : Rel α α} (P : {a : α} → {b : α} → (r a b) → Prop)
 
-lemma stupid (T : RelSeries r) {i : Fin (T.length + 1)} (hi : i < Fin.last T.length) :
-    r (T i) (T (i + 1)) := by
-  have := T.step (i.castPred hi.ne)
-  convert this
-  ext
-  simp [Fin.val_add_one, Fin.ne_last_of_lt hi]
-
-def propRel (T : RelSeries r) : Prop :=
-  ∀ i, (hi : i < Fin.last T.length) → P (stupid T hi)
-
-open Fin RelSeries
+section stuff
 
 lemma Fin.eq_zero' {n : ℕ} (hn : n = 0) (i : Fin (n+1)) : i = 0 :=
   (subsingleton_iff_le_one.2 (by omega)).1 _ _
@@ -23,6 +13,51 @@ lemma Fin.eq_zero' {n : ℕ} (hn : n = 0) (i : Fin (n+1)) : i = 0 :=
 lemma length_zero {T : RelSeries r} (hT : T.length = 0) : ∃ x, T = singleton r x :=
   ⟨T.head, ext (by simp [hT]) (funext fun i ↦ by simp [eq_zero' hT i, head])⟩
 
+@[simp]
+lemma Fin.castPred_succ_eq_add_one {n : ℕ} {i : Fin (n+1)} (hi : i ≠ last n) :
+    (i.castPred hi).succ = i + 1 :=
+  Fin.ext (by simp [val_add_one, hi])
+
+lemma Fin.snoc_add_one_castPred_of_lt {n : ℕ} {T : Type*} {i : Fin (n+1+1)} (hi : i < last (n+1))
+    (hi' : i.castPred hi.ne < last n) (f : Fin (n+1) → T) (x : T) :
+    snoc (α := fun _ ↦ T) f x (i+1) = f (i.castPred hi.ne+1) := by
+  suffices : i+1 ≠ Fin.last (n+1)
+  · rw [← castSucc_castPred _ this, Fin.snoc_castSucc]
+    congr
+    simp [← val_eq_val, val_add_one_of_lt hi, val_add_one_of_lt hi']
+  refine fun h ↦ hi'.ne (castSucc_injective _ ?_)
+  simpa [val_add_one_of_lt hi, ← val_eq_val] using h
+
+lemma Fin.snoc_eq_castPred_of_lt {n : ℕ} {T : Type*} {i : Fin (n+1+1)} (hi : i < last (n+1))
+    (f : Fin (n+1) → T) (x : T) :
+    snoc (α := fun _ ↦ T) f x i = f (i.castPred hi.ne) := by
+  conv =>
+    enter [1, 3]
+    rw [← castSucc_castPred i hi.ne]
+  rw [snoc_castSucc]
+
+lemma Fin.snoc_add_one_of_eq_last {n : ℕ} {T : Type*} {i : Fin (n+1+1)} (hi : i < last (n+1))
+    (hi' : i.castPred hi.ne = last n) (f : Fin (n+1) → T) (x : T) :
+    snoc (α := fun _ ↦ T) f x (i+1) = x := by
+  apply_fun castSucc at hi'
+  simp at hi'
+  simp [hi']
+
+lemma Fin.snoc_eq_of_eq_last {n : ℕ} {T : Type*} {i : Fin (n+1+1)} (hi : i < last (n+1))
+    (hi' : i.castPred hi.ne = last n) (f : Fin (n+1) → T) (x : T) :
+    snoc (α := fun _ ↦ T) f x i = f (last n) := by
+  rw [← castSucc_castPred i hi.ne, Fin.snoc_castSucc, hi']
+
+end stuff
+
+section test
+
+lemma stupid (T : RelSeries r) {i : Fin (T.length + 1)} (hi : i < Fin.last T.length) :
+    r (T i) (T (i + 1)) := by
+  simpa only [← castPred_succ_eq_add_one hi.ne] using T.step (i.castPred hi.ne)
+
+def propRel (T : RelSeries r) : Prop :=
+  ∀ i, (hi : i < Fin.last T.length) → P (stupid T hi)
 
 lemma foo'
     (HP : ∀ (T : RelSeries r) (x : α), propRel P T → (hx : r T.last x)
@@ -59,25 +94,16 @@ lemma miao' (T₁ T₂ : RelSeries r) (h₁ : propRel P T₁) (h₂ : propRel P 
     propRel P (T₁.append T₂ connect) := by
   refine foo' P ?_ T₁ T₂ h₁ h₂ connect hP
   intro T x hT connect hP i hi
-  simp at hi
-  set i' := i.castPred hi.ne with hi'def
   simp [RelSeries.append, RelSeries.snoc, append_right_eq_snoc]
-  by_cases hi' : i' < Fin.last T.length
-  · have := hT i' hi'
+  by_cases hi' : i.castPred hi.ne < Fin.last T.length
+  · have := hT _ hi'
     convert this
-    · rw [← castSucc_castPred i hi.ne, Fin.snoc_castSucc]
-    · suffices : i+1 ≠ Fin.last (T.length + 1)
-      · rw [← castSucc_castPred _ this, Fin.snoc_castSucc]
-        congr
-        simp [← val_eq_val, val_add_one_of_lt hi, val_add_one_of_lt hi', i']
-      refine fun h ↦ hi'.ne (castSucc_injective _ ?_)
-      simpa [val_add_one_of_lt hi, ← val_eq_val] using h
+    · exact snoc_eq_castPred_of_lt hi T.toFun x
+    · exact snoc_add_one_castPred_of_lt hi hi' T.toFun x
   · simp at hi'
     convert hP
-    · rw [← castSucc_castPred i hi.ne, Fin.snoc_castSucc, ← hi'def, hi', RelSeries.last]
-    · apply_fun castSucc at hi'
-      simp [i'] at hi'
-      simp [hi']
+    · exact snoc_eq_of_eq_last hi hi' T.toFun x
+    · exact snoc_add_one_of_eq_last hi hi' T.toFun x
 
 end test
 
