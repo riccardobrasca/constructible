@@ -221,18 +221,17 @@ lemma finrank_bot'' {F E : Type*} [Field F] [Field E] [Algebra F E]
 theorem degree_three_not_cons (x : ℂ) (hx : finrank ℚ (adjoin ℚ {x}) = 3) : ¬(IsConstructible x) := by
   intro h
   have h' := (isConstructible_iff x).mp h
-  sorry
-  -- rcases h' with ⟨a, b, c, d⟩
-  -- refine three_not_dvd_two_pow a.length ?_
-  -- have : finrank ℚ (adjoin ℚ {x}) ∣ finrank ℚ a.last := by
-  --   refine finrank_dvd_of_le_right ?_
-  --   exact adjoin_simple_le_iff.mpr b
-  -- rw [hx, ← finrank_bot'] at this
-  -- refine dvd_trans this ?_
-  -- have H := Tower_Degree_pow_2 a d
-  -- convert H
-  -- rw [Equality_Degrees c]
-  -- simp
+  rcases h' with ⟨a, b, c⟩
+  refine three_not_dvd_two_pow a.chain.length ?_
+  have : finrank ℚ (adjoin ℚ {x}) ∣ finrank ℚ a.chain.last := by
+    refine finrank_dvd_of_le_right ?_
+    exact adjoin_simple_le_iff.mpr c
+  rw [hx, ← finrank_bot'] at this
+  refine dvd_trans this ?_
+  have H := Tower_Degree_pow_2 a.chain a.quadratic
+  convert H
+  rw [Equality_Degrees b]
+  simp
 
 -- the cube root of 2
 local notation "α" => (2 : ℂ)^((1 : ℂ)/3)
