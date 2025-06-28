@@ -210,12 +210,47 @@ lemma blah (x : ℂ) (F : IntermediateField ℚ ℂ) :
   simp
 
 
-lemma square_min_poly (x : ℂ) (F : IntermediateField ℚ ℂ) (h : x ^ 2 ∈ F) :
-    (minpoly F x).natDegree = 1 ∨ (minpoly F x).natDegree = 2 := by
-  sorry
+
 
 lemma integral (x : ℂ) (F : IntermediateField ℚ ℂ) (h : x ^ 2 ∈ F) : IsIntegral F x := by
+  have : ∃ (a : F), x ^ 2 = ↑a := by
+    simp
+    exact h
+  obtain ⟨a, ha⟩ := this
+  let f := (X ^ 2 - C a : Polynomial F)
+  use f
+  have H : (aeval x) f = 0 := by
+    simp_all only [SetLike.coe_mem, map_sub, map_pow, aeval_X, aeval_C,
+    IntermediateField.algebraMap_apply, sub_self, f]
+  constructor
+  · monicity
+    simp_all only [SetLike.coe_mem, map_sub, map_pow, aeval_X, aeval_C, IntermediateField.algebraMap_apply, sub_self,
+      Nat.ofNat_pos, leadingCoeff_X_pow_sub_C, f]
+  · exact H
+
+lemma square_min_poly (x : ℂ) (F : IntermediateField ℚ ℂ) (h : x ^ 2 ∈ F) :
+    (minpoly F x).natDegree = 1 ∨ (minpoly F x).natDegree = 2 := by
+  have : ∃ (a : F), x ^ 2 = (a : ℂ) := by
+    simp
+    exact h
+  obtain ⟨a, ha⟩ := this
+  let f := (X ^ 2 - C a : Polynomial F)
+  let p := minpoly (↑F) x
+  have Hdeg : 0 < p.degree ∧ p.degree ≤ f.degree := by
+    constructor
+    ·
+      sorry
+    · apply minpoly.min
+      · monicity
+        rw [leadingCoeff_X_pow_sub_C (Nat.le.step Nat.le.refl)]
+      · simp_all only [SetLike.coe_mem, map_sub, map_pow, aeval_X, aeval_C,
+        IntermediateField.algebraMap_apply, sub_self, f]
+  have Hfdeg : degree f = 2 := by
+
+    sorry
+  rw [Hfdeg] at Hdeg
   sorry
+
 
 -- this should be in mathlib? I couldn't find it anywhere
 @[simp]
