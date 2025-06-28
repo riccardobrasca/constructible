@@ -205,22 +205,31 @@ def append (T₁ T₂ : QuadraticTower K L) (connect_le : T₁.chain.last ≤ T�
   quadratic :=
     miao' _ T₁.chain T₂.chain T₁.quadratic T₂.quadratic connect_le connect_rank
 
-lemma blah (x : ℂ) (F : IntermediateField ℚ ℂ) : F ≤ (IntermediateField.adjoin F {x}).restrictScalars ℚ := by
-  sorry
+lemma blah (x : ℂ) (F : IntermediateField ℚ ℂ) :
+        F ≤ (IntermediateField.adjoin F {x}).restrictScalars ℚ := by
+  rw [restrictScalars_adjoin_eq_sup]
+  simp
 
+-- should be able to rework this so that we can convert (or something like this) using
+-- IntermediateField.adjoin.finrank to change goal to showing the min poly has degree ≤ 2,
+-- which would then follow from the fact that x ^ 2 ∈ F
 lemma help (x : ℂ) (F : IntermediateField ℚ ℂ) (h : x ^ 2 ∈ F) :
     DegLeTwoExtension (blah x F)  := by
+  unfold DegLeTwoExtension
+  unfold adjoin
   sorry
 
 lemma head_of_append (T₁ T₂ : QuadraticTower K L) (connect_le : T₁.chain.last ≤ T₂.chain.head)
       (connect_rank :  DegLeTwoExtension connect_le)
       : (append T₁ T₂ connect_le connect_rank).chain.head = T₁.chain.head := by
-  sorry
+  unfold append
+  rw [@head_append]
 
 lemma last_of_append (T₁ T₂ : QuadraticTower K L) (connect_le : T₁.chain.last ≤ T₂.chain.head)
       (connect_rank :  DegLeTwoExtension connect_le)
       : (append T₁ T₂ connect_le connect_rank).chain.last = T₂.chain.last := by
-  sorry
+  unfold append
+  rw [@last_append]
 
 end QuadraticTower
 

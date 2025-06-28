@@ -67,7 +67,6 @@ lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔ ∃ (T : QuadraticTo
         simp_all only [inv_mem_iff]
       | rad x hx H =>
         obtain ⟨T, hQ, hl⟩ := H
-        --obtain ⟨L, hLx2, h0, H'⟩ := H
         by_cases h : x ∈ T.chain.last
         · use T
         · let K := (IntermediateField.adjoin T.chain.last {x}).restrictScalars ℚ
@@ -77,36 +76,21 @@ lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔ ∃ (T : QuadraticTo
             exact this
           let K' := singleton K
           have h1 : K = K'.chain.head := by
-            sorry
+            unfold K'
+            unfold QuadraticTower.singleton
+            rw [@RelSeries.head_singleton]
           have hleq : T.chain.last ≤ K'.chain.head := by
             rw [←h1]
             exact hK
-          --   have t := adjoin_contains_field_as_subfield {x} T.chain.last.toSubfield
-          --   simp_all only [AlgHom.toRingHom_eq_coe, coe_toSubfield, coe_type_toSubfield, ge_iff_le, K]
-          --   exa
-          --   sorry
-          --T.chain.snoc K hK
           let T' := append T K' hleq (help x T.chain.last hl)
           use T'
           constructor
           · convert hQ using 1
             exact head_of_append T K' hleq (help x T.chain.last hl)
-          /- have : Algebra L.last (IntermediateField.adjoin L.last {x}) := by
-            sorry -/
-          /- have hL' : L.last ≤ (IntermediateField.adjoin L.last {x}) := by
-            intro y hy
-            --apply IntermediateField.mem_toSubfield
-
-            sorry -/
-
-
-          --let L' := L.snoc (IntermediateField.adjoin L.last {x})
-
           · suffices : T'.chain.last = K'.chain.last
             · rw [this]
               simp [K', QuadraticTower.singleton, K]
               exact mem_adjoin_simple_self _ x
-             --IntermediateField.subset_adjoin T.chain.last ({x})
             · exact last_of_append T K' hleq (help x T.chain.last hl)
     sorry
 
