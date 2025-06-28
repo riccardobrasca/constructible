@@ -1,7 +1,7 @@
 import Mathlib
 import Constructible.Lemmas
 
-open Fin RelSeries
+open Fin RelSeries Polynomial IntermediateField
 
 variable {α : Type*} {r : Rel α α} (P : {a : α} → {b : α} → (r a b) → Prop)
 
@@ -108,7 +108,6 @@ lemma miao' (T₁ T₂ : RelSeries r) (h₁ : propRel P T₁) (h₂ : propRel P 
 
 end test
 
-namespace IntermediateField
 
 variable {K L : Type*} [Field K] [Field L] [Algebra K L]
 
@@ -210,15 +209,28 @@ lemma blah (x : ℂ) (F : IntermediateField ℚ ℂ) :
   rw [restrictScalars_adjoin_eq_sup]
   simp
 
--- should be able to rework this so that we can convert (or something like this) using
--- IntermediateField.adjoin.finrank to change goal to showing the min poly has degree ≤ 2,
--- which would then follow from the fact that x ^ 2 ∈ F
+
+lemma square_min_poly (x : ℂ) (F : IntermediateField ℚ ℂ) (h : x ^ 2 ∈ F) :
+    (minpoly F x).natDegree = 1 ∨ (minpoly F x).natDegree = 2 := by
+  sorry
+
+lemma integral (x : ℂ) (F : IntermediateField ℚ ℂ) (h : x ^ 2 ∈ F) : IsIntegral F x := by
+  sorry
+
+-- this should be in mathlib? I couldn't find it anywhere
+@[simp]
+theorem restrictScalars_extendScalars {K : Type u_1} {L : Type u_2} [Field K] [Field L]
+    [Algebra K L] (L' : IntermediateField K L) (E : IntermediateField L' L)
+    (h : L' ≤ restrictScalars K E) : extendScalars h = E := by
+  rfl
+
 lemma help (x : ℂ) (F : IntermediateField ℚ ℂ) (h : x ^ 2 ∈ F) :
     DegLeTwoExtension (blah x F)  := by
   unfold DegLeTwoExtension
   unfold adjoin
-  sorry
+  simp only [coe_type_toSubfield, restrictScalars_extendScalars]
+  rw [Nat.dvd_prime Nat.prime_two]
+  rw [adjoin.finrank (integral x F h)]
+  exact square_min_poly x F h
 
 end QuadraticTower
-
-end IntermediateField
