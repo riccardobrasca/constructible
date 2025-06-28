@@ -86,12 +86,14 @@ lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔ ∃ (T : QuadraticTo
           use T'
           constructor
           · convert hQ using 1
-            exact head_of_append T K' hleq (help x T.chain.last hl)
+            unfold T'
+            rw [@head_of_append]
           · suffices : T'.chain.last = K'.chain.last
             · rw [this]
               simp [K', QuadraticTower.singleton, K]
               exact mem_adjoin_simple_self _ x
-            · exact last_of_append T K' hleq (help x T.chain.last hl)
+            · unfold T'
+              rw [@last_of_append]
     sorry
 
 lemma miao (L : RelSeries ((· ≤ ·) : Rel (IntermediateField ℚ ℂ) (IntermediateField ℚ ℂ)))

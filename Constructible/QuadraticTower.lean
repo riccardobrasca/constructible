@@ -219,18 +219,6 @@ lemma help (x : ℂ) (F : IntermediateField ℚ ℂ) (h : x ^ 2 ∈ F) :
   unfold adjoin
   sorry
 
-lemma head_of_append (T₁ T₂ : QuadraticTower K L) (connect_le : T₁.chain.last ≤ T₂.chain.head)
-      (connect_rank :  DegLeTwoExtension connect_le)
-      : (append T₁ T₂ connect_le connect_rank).chain.head = T₁.chain.head := by
-  unfold append
-  rw [@head_append]
-
-lemma last_of_append (T₁ T₂ : QuadraticTower K L) (connect_le : T₁.chain.last ≤ T₂.chain.head)
-      (connect_rank :  DegLeTwoExtension connect_le)
-      : (append T₁ T₂ connect_le connect_rank).chain.last = T₂.chain.last := by
-  unfold append
-  rw [@last_append]
-
 end QuadraticTower
 
 end IntermediateField
