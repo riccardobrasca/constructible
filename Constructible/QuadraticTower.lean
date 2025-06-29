@@ -236,21 +236,59 @@ lemma square_min_poly (x : ℂ) (F : IntermediateField ℚ ℂ) (h : x ^ 2 ∈ F
   obtain ⟨a, ha⟩ := this
   let f := (X ^ 2 - C a : Polynomial F)
   let p := minpoly (↑F) x
+  have hf : f ≠ 0 := by
+    suffices : natDegree f > 0
+    · exact ne_zero_of_natDegree_gt this
+    · simp_all only [SetLike.coe_mem, natDegree_sub_C, natDegree_pow,
+        natDegree_X, mul_one, gt_iff_lt, Nat.ofNat_pos, f]
+  have h_int : IsIntegral F x := by
+    exact integral x F h
+  have hp : p ≠ 0 := by
+    suffices : natDegree p > 0
+    · exact ne_zero_of_natDegree_gt this
+    · exact minpoly.natDegree_pos (integral x F h)
+  have hf_deg : degree f = natDegree f := by exact degree_eq_natDegree hf
+  have hf_deg2 : natDegree f = 2 := by
+    simp_all only [SetLike.coe_mem, ne_eq, natDegree_sub_C, natDegree_pow,
+      natDegree_X, mul_one, Nat.cast_ofNat, f, p]
+  rw [hf_deg2] at hf_deg
+  have hp_deg : degree p = natDegree p := by exact degree_eq_natDegree hp
   have Hdeg : 0 < p.degree ∧ p.degree ≤ f.degree := by
     constructor
-    ·
-      sorry
+    · rw [hp_deg]
+      rw [←gt_iff_lt]
+      have : p.natDegree > 0 := by
+        exact minpoly.natDegree_pos h_int
+      simp_all only [SetLike.coe_mem, ne_eq, Nat.cast_ofNat, natDegree_sub_C,
+        natDegree_pow, natDegree_X, mul_one, gt_iff_lt, Nat.cast_pos, p, f]
     · apply minpoly.min
       · monicity
         rw [leadingCoeff_X_pow_sub_C (Nat.le.step Nat.le.refl)]
       · simp_all only [SetLike.coe_mem, map_sub, map_pow, aeval_X, aeval_C,
         IntermediateField.algebraMap_apply, sub_self, f]
-  have Hfdeg : degree f = 2 := by
-
-    sorry
-  rw [Hfdeg] at Hdeg
-  sorry
-
+  rw [hf_deg] at Hdeg
+  have test := Hdeg
+  cases' Hdeg : p.degree with n
+  · simp_all [p, f]
+  · rw [hp_deg] at test
+    rw [hp_deg] at Hdeg
+    rw [Hdeg] at test
+    rw [Hdeg] at hp_deg
+    suffices : p.natDegree = 1 ∨ p.natDegree = 2
+    · simp_all only [SetLike.coe_mem, ne_eq, Nat.cast_ofNat, natDegree_sub_C,
+        natDegree_pow, natDegree_X, mul_one, WithBot.coe_pos, p, f]
+    · rcases test with ⟨hn_pos, hn_le⟩
+      have hn_pos' : 0 < n := by
+        exact WithBot.coe_pos.mp hn_pos
+      have hn_le' : n ≤ 2 := by
+        exact WithBot.coe_le_coe.mp hn_le
+      have testest : p.natDegree = n := by
+        exact (degree_eq_iff_natDegree_eq_of_pos hn_pos').mp hp_deg
+      interval_cases n
+      · left
+        exact testest
+      · right
+        exact testest
 
 -- this should be in mathlib? I couldn't find it anywhere
 @[simp]
