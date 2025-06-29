@@ -267,28 +267,28 @@ lemma square_min_poly (x : ℂ) (F : IntermediateField ℚ ℂ) (h : x ^ 2 ∈ F
       · simp_all only [SetLike.coe_mem, map_sub, map_pow, aeval_X, aeval_C,
         IntermediateField.algebraMap_apply, sub_self, f]
   rw [hf_deg] at Hdeg
-  have test := Hdeg
+  have := Hdeg
   cases' Hdeg : p.degree with n
   · simp_all [p, f]
-  · rw [hp_deg] at test
+  · rw [hp_deg] at this
     rw [hp_deg] at Hdeg
-    rw [Hdeg] at test
+    rw [Hdeg] at this
     rw [Hdeg] at hp_deg
     suffices : p.natDegree = 1 ∨ p.natDegree = 2
     · simp_all only [SetLike.coe_mem, ne_eq, Nat.cast_ofNat, natDegree_sub_C,
         natDegree_pow, natDegree_X, mul_one, WithBot.coe_pos, p, f]
-    · rcases test with ⟨hn_pos, hn_le⟩
+    · rcases this with ⟨hn_pos, hn_le⟩
       have hn_pos' : 0 < n := by
         exact WithBot.coe_pos.mp hn_pos
       have hn_le' : n ≤ 2 := by
         exact WithBot.coe_le_coe.mp hn_le
-      have testest : p.natDegree = n := by
+      have : p.natDegree = n := by
         exact (degree_eq_iff_natDegree_eq_of_pos hn_pos').mp hp_deg
       interval_cases n
       · left
-        exact testest
+        exact this
       · right
-        exact testest
+        exact this
 
 -- this should be in mathlib? I couldn't find it anywhere
 @[simp]

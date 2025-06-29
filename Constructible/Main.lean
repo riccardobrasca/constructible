@@ -58,11 +58,30 @@ lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔ ∃ (T : QuadraticTo
       induction h with
       | base x =>
         exact ⟨⟨RelSeries.singleton _ ⊥, by simp⟩, by simp, IntermediateField.algebraMap_mem ⊥ x⟩
-      | add x y _ _ _ _ =>
-        sorry
+      | add x y hx hy Hx Hy =>
+        obtain ⟨Tx, Hx⟩ := Hx
+        obtain ⟨Ty, Hy⟩ := Hy
+        obtain ⟨Hx_head, Hx_last⟩ := Hx
+        obtain ⟨Hy_head, Hy_last⟩ := Hy
+
+        --use T = ? need to be able to combine QuadraticTowers
+
+        constructor
+        · sorry
+        · sorry
       | neg _ _ _ =>
         simp_all only [neg_mem_iff]
-      | mul α β _ _ _ _ => sorry
+      | mul x y hx hy Hx Hy =>
+        obtain ⟨Tx, Hx⟩ := Hx
+        obtain ⟨Ty, Hy⟩ := Hy
+        obtain ⟨Hx_head, Hx_last⟩ := Hx
+        obtain ⟨Hy_head, Hy_last⟩ := Hy
+
+        --use T = ? need to be able to combine QuadraticTowers
+
+        constructor
+        · sorry
+        · sorry
       | inv x _ _ =>
         simp_all only [inv_mem_iff]
       | rad x hx H =>
