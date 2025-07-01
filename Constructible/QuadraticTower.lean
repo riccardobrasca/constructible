@@ -7,13 +7,16 @@ variable {α : Type*} {r : Rel α α} (P : {a : α} → {b : α} → (r a b) →
 
 section stuff
 
+--Fin 1 consists of only 0
 lemma Fin.eq_zero' {n : ℕ} (hn : n = 0) (i : Fin (n+1)) : i = 0 :=
   (subsingleton_iff_le_one.2 (by omega)).1 _ _
 
+-- a RelSeries with length 0 is a singleton
 lemma length_zero {T : RelSeries r} (hT : T.length = 0) : ∃ x, T = singleton r x :=
   ⟨T.head, ext (by simp [hT]) (funext fun i ↦ by simp [eq_zero' hT i, head])⟩
 
 @[simp]
+--For some i in Fin (n+1) different from last n, the successior of i as an element of Fin n is i+1
 lemma Fin.castPred_succ_eq_add_one {n : ℕ} {i : Fin (n+1)} (hi : i ≠ last n) :
     (i.castPred hi).succ = i + 1 :=
   Fin.ext (by simp [val_add_one, hi])
@@ -118,7 +121,7 @@ def DegLeTwoExtension {F₁ F₂ : IntermediateField K L}
 structure QuadraticTower (K L : Type*) [Field K] [Field L] [Algebra K L] where
   chain : RelSeries (α := IntermediateField K L) (· ≤ ·)
   quadratic : ∀ i, (hi : i < Fin.last chain.length) → DegLeTwoExtension (ciao chain hi)
-
+/-
 def compositum (F : IntermediateField K L) :
     ((· ≤ ·) :  IntermediateField K L → IntermediateField K L → Prop) →r
     ((· ≤ ·) :  IntermediateField K L → IntermediateField K L → Prop) where
@@ -132,7 +135,7 @@ theorem leee' (f : IntermediateField K L) {e₁ e₂ : IntermediateField K L} (h
     (compositum f e₁) ≤ (compositum f e₂) := by
   simp [compositum]
   apply le_trans h
-  exact le_sup_right
+  exact le_sup_right -/
 
 theorem leee (f : IntermediateField K L) {e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂) :
      f ⊔ e₁ ≤ f ⊔ e₂ := by
