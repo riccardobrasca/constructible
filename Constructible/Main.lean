@@ -22,7 +22,7 @@ inductive IsConstructible : ℂ → Prop
   | mul (α β : ℂ) : IsConstructible α → IsConstructible β → IsConstructible (α * β)
   | inv (α : ℂ) : IsConstructible α → IsConstructible α⁻¹
   | rad (α : ℂ) : IsConstructible (α ^ 2) → IsConstructible α
-
+/-
 @[elab_as_elim]
 lemma IsConstructible.induction (P : ℂ → Prop) {α : ℂ} (hα : IsConstructible α)
     (base : ∀ α : ℚ, P (algebraMap ℚ ℂ α))
@@ -39,18 +39,20 @@ lemma IsConstructible.induction (P : ℂ → Prop) {α : ℂ} (hα : IsConstruct
   · exact fun α a a_ih => neg α a_ih
   · exact fun α β a a a_ih a_ih_2 => mul α β a_ih a_ih_2
   · exact fun α a a_ih => inv α a_ih
-  · exact fun α a a_ih => rad α a_ih
+  · exact fun α a a_ih => rad α a_ih -/
 
 
 /-Lemma stating that the first subfield L[0] of a chain of nested subfields L is a
 subfield of the last subfield L[L.length] in the chain-/
-lemma RelSeries_head_subset_last (L : RelSeries (α := IntermediateField ℚ ℂ) (· ≤ ·)) : L.head ≤ L.last := by
+lemma RelSeries_head_subset_last (L : RelSeries (α := IntermediateField ℚ ℂ) (· ≤ ·)) :
+    L.head ≤ L.last := by
   rw [← RelSeries.apply_zero, ← RelSeries.apply_last]
   rcases L.rel_or_eq_of_le (i := 0) (j := ⟨L.length, by omega⟩) (by simp) with h | h
   · exact h
   · simp [h]
     rfl
 
+--Make this only an implication?
 lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔ ∃ (T : QuadraticTower ℚ ℂ), T.chain.head = ⊥ ∧
     x ∈ T.chain.last := by
     constructor
@@ -86,17 +88,13 @@ lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔ ∃ (T : QuadraticTo
           use T'
           constructor
           · convert hQ using 1
-            unfold T'
-            unfold append
-            rw [@RelSeries.head_append]
+            simp [T', append]
           · suffices : T'.chain.last = K'.chain.last
             · rw [this]
               simp [K', QuadraticTower.singleton, K]
               exact mem_adjoin_simple_self _ x
-            · unfold T'
-              unfold append
-              rw [@RelSeries.last_append]
-    sorry
+            · simp [T', append]
+    · sorry
 
 lemma miao (L : RelSeries ((· ≤ ·) : Rel (IntermediateField ℚ ℂ) (IntermediateField ℚ ℂ)))
     {i j : Fin (L.length + 1)} (hij : i ≤ j) : L.toFun i ≤  L.toFun j := by
@@ -113,6 +111,20 @@ noncomputable def ciccio (L : RelSeries ((· ≤ ·) : Rel (IntermediateField �
 noncomputable instance (L : RelSeries ((· ≤ ·) : Rel (IntermediateField ℚ ℂ) (IntermediateField ℚ ℂ)))
     {i : Fin (L.length + 1)} (hi : i < Fin.last L.length) : Algebra (L.toFun i) (L.toFun (i+1)) :=
   (IntermediateField.inclusion (ciao L hi)).toAlgebra
+
+lemma Tower_Degree_pow_2' (L : QuadraticTower ℚ ℂ) :
+      totalDegree L ∣ 2 ^ L.chain.length := by
+  induction L.chain using RelSeries.inductionOn' with
+  | singleton x =>
+      simp only [totalDegree, AlgHom.toRingHom_eq_coe, RelSeries.singleton_length, pow_zero,
+        Nat.dvd_one]
+
+      sorry
+  | snoc T S hLS h =>
+      sorry
+
+--#exit
+
 
 set_option maxHeartbeats 0 in
 /- set_option synthInstance.maxHeartbeats 0 in
@@ -166,26 +178,11 @@ lemma Tower_Degree_pow_2 (L : RelSeries ((· ≤ ·) : Rel (IntermediateField �
         have := (L.snoc_castSucc S hLS (i+1))
         rw [boh] at this
         rwa [Equality_Degrees (L.snoc_castSucc S hLS i), Equality_Degrees' this] at H
-
       exact key
 
-
 open Module
 
-/-   | nil => simp at hL
-  | cons head tail ih =>
-    by_cases hT : tail = []
-    · use 0
-      simp_all
-      --have := H.1
-      exact finrank_span_singleton hx0
-    · have hT' : 0 < tail.length := by rwa [List.length_pos_iff, ne_eq]
-      specialize ih hT'
-    sorry -/
-
-open Module
-
-
+--Not used
 lemma adjoin_degree_dvd {F K : Type*} [Field F] [Field K] [Algebra F K] [FiniteDimensional F K] (x : K) :
       finrank F (adjoin F {x}) ∣ finrank F K := by
   rw [← finrank_mul_finrank F (adjoin F {x}) K]

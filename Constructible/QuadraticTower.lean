@@ -56,49 +56,60 @@ lemma Fin.snoc_eq_of_eq_last {n : ℕ} {T : Type*} {i : Fin (n+1+1)} (hi : i < l
 
 end stuff
 
-section test
+section propRel
 
-lemma stupid (T : RelSeries r) {i : Fin (T.length + 1)} (hi : i < Fin.last T.length) :
+lemma relsucc (T : RelSeries r) {i : Fin (T.length + 1)} (hi : i < Fin.last T.length) :
     r (T i) (T (i + 1)) := by
   simpa only [← castPred_succ_eq_add_one hi.ne] using T.step (i.castPred hi.ne)
 
 def propRel (T : RelSeries r) : Prop :=
-  ∀ i, (hi : i < Fin.last T.length) → P (stupid T hi)
+  ∀ i, (hi : i < Fin.last T.length) → P (relsucc T hi)
 
-lemma foo'
+lemma propRel_tail {T : RelSeries r} (hl : T.length ≠ 0) (hT : propRel P T) :
+    propRel P (T.tail hl) := by
+
+  sorry
+
+lemma propRel_append
     (HP : ∀ (T : RelSeries r) (x : α), propRel P T → (hx : r T.last x)
       → (HP : P hx) → propRel P (T.snoc _ hx)) :
     ∀ (T₁ T₂ : RelSeries r), propRel P T₁ → propRel P T₂ → (connect : r T₁.last T₂.head) →
       (P connect) →
       propRel P (T₁.append T₂ connect) := by
     intro T₁ T₂ h₁ h₂ connect hP
-    let x := T₂.head
     by_cases hlen : T₂.length = 0
-    · obtain ⟨x, rfl⟩ := length_zero hlen
+    · obtain ⟨_, rfl⟩ := length_zero hlen
       exact HP T₁ _ h₁ ‹_› ‹_›
-    · let T₂':= T₂.drop ⟨1, by omega⟩
+    · let x := T₂.head
+      let T₂':= T₂.tail hlen
       let T₃ := T₁.append (singleton r x) connect
       have key : T₂'.length < T₂.length := by
-        simp [T₂']
-        exact Nat.zero_lt_of_ne_zero hlen
-      have := foo' ‹_› /- this means "by assumptions" -/ T₃ T₂' sorry sorry sorry (by sorry)
+        simpa [T₂'] using Nat.zero_lt_of_ne_zero hlen
+      have h2 : r T₃.last T₂'.head := by
+        simp only [T₃, T₂']
+        rw [@last_append]
+        simp [T₃, T₂', x]
+        rw [head]
+        have : 0 < Fin.last T₂.length := by aesop
+        have := relsucc T₂ (i := 0) this
+        simp_all
+      have h3 : P h2 := by
+        have := h₂ 0 (by aesop)
+        simp_all  [last_append, last_singleton, head_tail, T₃, x, T₂']
+      have := propRel_append ‹_› /- this means "by assumption" -/ T₃ T₂' (HP T₁ x h₁ connect hP)
+        (propRel_tail P hlen h₂) h2 h3
       convert this using 1
-      simp [T₂', T₃]
-      rw [ RelSeries.append_assoc]
-      congr
-      simp [x]
-
-      sorry
-      simp [x]
+      simp only [T₃, T₂']
       have := T₂.step ⟨0, Nat.zero_lt_of_ne_zero hlen⟩
-      aesop
+      rw [RelSeries.append_assoc _ _ _ _ this]
+      simp [x, RelSeries.cons_self_tail]
 
   termination_by T₁ T₂ => T₂.length
 
 lemma miao' (T₁ T₂ : RelSeries r) (h₁ : propRel P T₁) (h₂ : propRel P T₂)
     (connect : r T₁.last T₂.head) (hP : P connect) :
     propRel P (T₁.append T₂ connect) := by
-  refine foo' P ?_ T₁ T₂ h₁ h₂ connect hP
+  refine propRel_append P ?_ T₁ T₂ h₁ h₂ connect hP
   intro T x hT connect hP i hi
   simp [RelSeries.append, RelSeries.snoc, append_right_eq_snoc]
   by_cases hi' : i.castPred hi.ne < Fin.last T.length
@@ -109,18 +120,11 @@ lemma miao' (T₁ T₂ : RelSeries r) (h₁ : propRel P T₁) (h₂ : propRel P 
     · exact snoc_eq_of_eq_last hi (by simpa using hi') T.toFun x
     · exact snoc_add_one_of_eq_last hi (by simpa using hi') T.toFun x
 
-end test
-
+end propRel
 
 variable {K L : Type*} [Field K] [Field L] [Algebra K L]
 
-def DegLeTwoExtension {F₁ F₂ : IntermediateField K L}
-    (h_le : F₁ ≤ F₂) : Prop :=
-  Module.finrank F₁ (extendScalars h_le) ∣ 2
 
-structure QuadraticTower (K L : Type*) [Field K] [Field L] [Algebra K L] where
-  chain : RelSeries (α := IntermediateField K L) (· ≤ ·)
-  quadratic : ∀ i, (hi : i < Fin.last chain.length) → DegLeTwoExtension (ciao chain hi)
 /-
 def compositum (F : IntermediateField K L) :
     ((· ≤ ·) :  IntermediateField K L → IntermediateField K L → Prop) →r
@@ -137,17 +141,18 @@ theorem leee' (f : IntermediateField K L) {e₁ e₂ : IntermediateField K L} (h
   apply le_trans h
   exact le_sup_right -/
 
+
+
 theorem leee (f : IntermediateField K L) {e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂) :
      f ⊔ e₁ ≤ f ⊔ e₂ := by
   gcongr
-
 
 --set_option maxHeartbeats 0 in
 theorem degree_le {f e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂)
     (h_unneccess? :
     let ha : e₁ ≤ f ⊔ e₁ := le_sup_right
     letI := (inclusion ha).toAlgebra.toModule
-    Module.finrank e₁ (f ⊔ e₁ : IntermediateField K L) ≠ 0):
+    Module.finrank e₁ (f ⊔ e₁ : IntermediateField K L) ≠ 0) :
     letI := (inclusion (leee f h)).toAlgebra.toModule
     letI := (inclusion h).toAlgebra.toModule
     Module.finrank (f ⊔ e₁ : IntermediateField K L) (f ⊔ e₂ : IntermediateField K L) ≤
@@ -186,26 +191,95 @@ theorem degree_le {f e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂)
     field_simp [this] at key
     exact key
   assumption
+
+
+
+def DegLeTwoExtension {F₁ F₂ : IntermediateField K L}
+    (h_le : F₁ ≤ F₂) : Prop :=
+  Module.finrank F₁ (extendScalars h_le) ∣ 2
+
+structure QuadraticTower (K L : Type*) [Field K] [Field L] [Algebra K L] where
+  chain : RelSeries (α := IntermediateField K L) (· ≤ ·)
+  quadratic : ∀ i, (hi : i < Fin.last chain.length) → DegLeTwoExtension (ciao chain hi)
+
+/-
+theorem quadratic_tower_eq {T₁ T₂ : QuadraticTower K L} (h : T₁.chain = T₂.chain) : T₁ = T₂ := by
+  cases T₁
+  cases T₂
+  congr -/
+
 namespace QuadraticTower
 
 variable {K L : Type*} [Field K] [Field L] [Algebra K L]
 
 open RelSeries
 
+instance : CoeFun (QuadraticTower K L) (fun x ↦ Fin (x.chain.length + 1) → IntermediateField K L) :=
+{ coe f :=  f.chain.toFun }
+
+
 def singleton (F : IntermediateField K L) : QuadraticTower K L where
   chain := RelSeries.singleton (· ≤ ·) F
   quadratic := fun i hi => by simp [DegLeTwoExtension]
 
-lemma le_of_lt (T : QuadraticTower K L) {i j : Fin (T.chain.length + 1)} (h : i ≤ j) :
+instance : Inhabited (QuadraticTower K L) where
+  default := singleton (⊥ : IntermediateField K L)
+
+instance : Nonempty (QuadraticTower K L) := instNonemptyOfInhabited
+
+set_option backward.dsimp.proofs true in
+@[ext (iff := false)]
+lemma ext {x y : QuadraticTower K L} (length_eq : x.chain.length = y.chain.length)
+    (toFun_eq : x.chain.toFun = y.chain.toFun ∘ Fin.cast (by rw [length_eq])) : x = y := by
+  rcases x with ⟨⟨x1, x2⟩, x_quadratic⟩
+  dsimp only at length_eq toFun_eq
+  subst length_eq toFun_eq
+  rfl
+
+lemma le_of_le (T : QuadraticTower K L) {i j : Fin (T.chain.length + 1)} (h : i ≤ j) :
     T.chain.toFun i ≤ T.chain.toFun j := by
   have := T.chain.rel_or_eq_of_le h
   aesop
 
-def append (T₁ T₂ : QuadraticTower K L) (connect_le : T₁.chain.last ≤ T₂.chain.head)
-    (connect_rank :  DegLeTwoExtension connect_le) : QuadraticTower K L where
+instance membership : Membership (IntermediateField K L) (QuadraticTower K L) :=
+  ⟨Function.swap (· ∈ Set.range ·)⟩
+
+variable {T : QuadraticTower K L} {x : IntermediateField K L}
+
+theorem mem_def : x ∈ T ↔ x ∈ Set.range T := Iff.rfl
+
+theorem subsingleton_of_length_eq_zero (hs : T.chain.length = 0) : {x | x ∈ T}.Subsingleton := by
+  rintro - ⟨i, rfl⟩ - ⟨j, rfl⟩
+  congr!
+  exact finCongr (by rw [hs, zero_add]) |>.injective <| Subsingleton.elim (α := Fin 1) _ _
+
+def head (T : QuadraticTower K L) : IntermediateField K L := T 0
+
+def last (T : QuadraticTower K L) : IntermediateField K L  := T <| Fin.last _
+
+lemma apply_zero (T : QuadraticTower K L) : T 0 = T.head := rfl
+
+lemma apply_last (T : QuadraticTower K L) : T (Fin.last <| T.chain.length) = T.last := rfl
+
+lemma head_mem (T : QuadraticTower K L) : T.head ∈ T := ⟨_, rfl⟩
+
+lemma last_mem (T : QuadraticTower K L) : T.last ∈ T := ⟨_, rfl⟩
+
+@[simp]
+lemma head_singleton (x : IntermediateField K L) : (singleton x).head = x := by simp [singleton, head]
+
+@[simp]
+lemma last_singleton (x : IntermediateField K L) : (singleton x).last = x := by simp [singleton, last]
+
+def append (T₁ T₂ : QuadraticTower K L) {connect_le : T₁.chain.last ≤ T₂.chain.head}
+    (connect_rank : DegLeTwoExtension connect_le) : QuadraticTower K L where
   chain := T₁.chain.append T₂.chain connect_le
   quadratic :=
     miao' _ T₁.chain T₂.chain T₁.quadratic T₂.quadratic connect_le connect_rank
+
+def snoc (T : QuadraticTower K L) (x : IntermediateField K L)
+    (hx : T.chain.last ≤ x) (hx2 : DegLeTwoExtension hx) : QuadraticTower K L :=
+  T.append (singleton x) hx2
 
 lemma blah (x : ℂ) (F : IntermediateField ℚ ℂ) :
         F ≤ (IntermediateField.adjoin F {x}).restrictScalars ℚ := by
@@ -213,7 +287,45 @@ lemma blah (x : ℂ) (F : IntermediateField ℚ ℂ) :
   simp
 
 
+/-Lemma stating that the first subfield L[0] of a chain of nested subfields L is a
+subfield of the last subfield L[L.length] in the chain-/
+lemma head_le_last (T : QuadraticTower K L) :
+    T.chain.head ≤ T.chain.last := by
+  rw [← RelSeries.apply_zero, ← RelSeries.apply_last]
+  rcases T.chain.rel_or_eq_of_le (i := 0) (j := ⟨T.chain.length, by omega⟩) (by simp) with h | h
+  · exact h
+  · simp [h]
+    rfl
 
+noncomputable def totalDegree (T : QuadraticTower K L) : ℕ :=
+  letI := (IntermediateField.inclusion (head_le_last T)).toAlgebra.toModule
+  Module.finrank T.chain.head T.chain.last
+
+@[elab_as_elim]
+def inductionOn' (motive : QuadraticTower K L → Sort*)
+    (singleton : (x : IntermediateField K L) → motive (singleton x))
+    (snoc : (T : QuadraticTower K L) → (x : IntermediateField K L) → (hx : T.chain.last ≤ x) → (hx' : DegLeTwoExtension hx) → (hp : motive T) →
+      motive (T.snoc x hx hx')) (T : QuadraticTower K L) :
+    motive T := by
+  let this {n : ℕ} (heq : T.chain.length = n) : motive T := by
+    induction n generalizing T with
+    | zero =>
+      convert singleton T.chain.head
+      obtain ⟨x, hx⟩ := length_zero heq
+      simp only [hx, head_singleton]
+      cases T
+      sorry
+      --exact quadratic_tower_eq hx
+
+    | succ d hd =>
+      have ne0 : T.chain.length ≠ 0 := by simp [heq]
+      have len : T.chain.eraseLast.length = d := by simp [heq]
+
+      /- convert snoc T.chain.eraseLast T.chain.last (T.chain.eraseLast_last_rel_last ne0)
+        (hd _ len) -/
+      --exact (p.snoc_self_eraseLast ne0).symm
+      sorry
+  exact this rfl
 
 lemma integral (x : ℂ) (F : IntermediateField ℚ ℂ) (h : x ^ 2 ∈ F) : IsIntegral F x := by
   have : ∃ (a : F), x ^ 2 = ↑a := by
