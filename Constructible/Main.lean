@@ -84,7 +84,7 @@ lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔ ∃ (T : QuadraticTo
           have hleq : T.chain.last ≤ K'.chain.head := by
             rw [←h1]
             exact hK
-          let T' := append T K' hleq (help x T.chain.last hl)
+          let T' := append T K' (help x T.chain.last hl)
           use T'
           constructor
           · convert hQ using 1

@@ -70,7 +70,7 @@ lemma propRel_tail {T : RelSeries r} (hl : T.length ≠ 0) (hT : propRel P T) :
 
   sorry
 
-lemma propRel_append
+lemma propRel_append_aux
     (HP : ∀ (T : RelSeries r) (x : α), propRel P T → (hx : r T.last x)
       → (HP : P hx) → propRel P (T.snoc _ hx)) :
     ∀ (T₁ T₂ : RelSeries r), propRel P T₁ → propRel P T₂ → (connect : r T₁.last T₂.head) →
@@ -96,7 +96,7 @@ lemma propRel_append
       have h3 : P h2 := by
         have := h₂ 0 (by aesop)
         simp_all  [last_append, last_singleton, head_tail, T₃, x, T₂']
-      have := propRel_append ‹_› /- this means "by assumption" -/ T₃ T₂' (HP T₁ x h₁ connect hP)
+      have := propRel_append_aux ‹_› /- this means "by assumption" -/ T₃ T₂' (HP T₁ x h₁ connect hP)
         (propRel_tail P hlen h₂) h2 h3
       convert this using 1
       simp only [T₃, T₂']
@@ -106,10 +106,10 @@ lemma propRel_append
 
   termination_by T₁ T₂ => T₂.length
 
-lemma miao' (T₁ T₂ : RelSeries r) (h₁ : propRel P T₁) (h₂ : propRel P T₂)
+lemma PropRel_append (T₁ T₂ : RelSeries r) (h₁ : propRel P T₁) (h₂ : propRel P T₂)
     (connect : r T₁.last T₂.head) (hP : P connect) :
     propRel P (T₁.append T₂ connect) := by
-  refine propRel_append P ?_ T₁ T₂ h₁ h₂ connect hP
+  refine propRel_append_aux P ?_ T₁ T₂ h₁ h₂ connect hP
   intro T x hT connect hP i hi
   simp [RelSeries.append, RelSeries.snoc, append_right_eq_snoc]
   by_cases hi' : i.castPred hi.ne < Fin.last T.length
@@ -275,7 +275,7 @@ def append (T₁ T₂ : QuadraticTower K L) {connect_le : T₁.chain.last ≤ T�
     (connect_rank : DegLeTwoExtension connect_le) : QuadraticTower K L where
   chain := T₁.chain.append T₂.chain connect_le
   quadratic :=
-    miao' _ T₁.chain T₂.chain T₁.quadratic T₂.quadratic connect_le connect_rank
+    PropRel_append _ T₁.chain T₂.chain T₁.quadratic T₂.quadratic connect_le connect_rank
 
 def snoc (T : QuadraticTower K L) (x : IntermediateField K L)
     (hx : T.chain.last ≤ x) (hx2 : DegLeTwoExtension hx) : QuadraticTower K L :=
