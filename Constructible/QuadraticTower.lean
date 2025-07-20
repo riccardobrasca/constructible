@@ -1,9 +1,9 @@
 import Mathlib
 import Constructible.Lemmas
 
-open Fin RelSeries Polynomial IntermediateField
+open Fin RelSeries Polynomial IntermediateField Rel
 
-variable {α : Type*} {r : Rel α α} (P : {a : α} → {b : α} → (r a b) → Prop)
+variable {α : Type*} {r : Rel α α} (P : {a : α} → {b : α} → a ~[r] b → Prop)
 
 section stuff
 
@@ -59,7 +59,7 @@ end stuff
 section propRel
 
 lemma relsucc (T : RelSeries r) {i : Fin (T.length + 1)} (hi : i < Fin.last T.length) :
-    r (T i) (T (i + 1)) := by
+   (T i ~[r] T (i + 1)) := by
   simpa only [← castPred_succ_eq_add_one hi.ne] using T.step (i.castPred hi.ne)
 
 def propRel (T : RelSeries r) : Prop :=
@@ -71,9 +71,9 @@ lemma propRel_tail {T : RelSeries r} (hl : T.length ≠ 0) (hT : propRel P T) :
   sorry
 
 lemma propRel_append_aux
-    (HP : ∀ (T : RelSeries r) (x : α), propRel P T → (hx : r T.last x)
+    (HP : ∀ (T : RelSeries r) (x : α), propRel P T → (hx : T.last ~[r] x)
       → (HP : P hx) → propRel P (T.snoc _ hx)) :
-    ∀ (T₁ T₂ : RelSeries r), propRel P T₁ → propRel P T₂ → (connect : r T₁.last T₂.head) →
+    ∀ (T₁ T₂ : RelSeries r), propRel P T₁ → propRel P T₂ → (connect : T₁.last ~[r] T₂.head) →
       (P connect) →
       propRel P (T₁.append T₂ connect) := by
     intro T₁ T₂ h₁ h₂ connect hP
@@ -85,7 +85,7 @@ lemma propRel_append_aux
       let T₃ := T₁.append (singleton r x) connect
       have key : T₂'.length < T₂.length := by
         simpa [T₂'] using Nat.zero_lt_of_ne_zero hlen
-      have h2 : r T₃.last T₂'.head := by
+      have h2 : T₃.last ~[r] T₂'.head := by
         simp only [T₃, T₂']
         rw [@last_append]
         simp [T₃, T₂', x]
@@ -107,7 +107,7 @@ lemma propRel_append_aux
   termination_by T₁ T₂ => T₂.length
 
 lemma PropRel_append (T₁ T₂ : RelSeries r) (h₁ : propRel P T₁) (h₂ : propRel P T₂)
-    (connect : r T₁.last T₂.head) (hP : P connect) :
+    (connect : T₁.last ~[r] T₂.head) (hP : P connect) :
     propRel P (T₁.append T₂ connect) := by
   refine propRel_append_aux P ?_ T₁ T₂ h₁ h₂ connect hP
   intro T x hT connect hP i hi
@@ -199,7 +199,7 @@ def DegLeTwoExtension {F₁ F₂ : IntermediateField K L}
   Module.finrank F₁ (extendScalars h_le) ∣ 2
 
 structure QuadraticTower (K L : Type*) [Field K] [Field L] [Algebra K L] where
-  chain : RelSeries (α := IntermediateField K L) (· ≤ ·)
+  chain : RelSeries {(x, y) : IntermediateField K L × IntermediateField K L | x ≤ y}
   quadratic : ∀ i, (hi : i < Fin.last chain.length) → DegLeTwoExtension (ciao chain hi)
 
 /-
@@ -219,7 +219,7 @@ instance : CoeFun (QuadraticTower K L) (fun x ↦ Fin (x.chain.length + 1) → I
 
 
 def singleton (F : IntermediateField K L) : QuadraticTower K L where
-  chain := RelSeries.singleton (· ≤ ·) F
+  chain := RelSeries.singleton {(x, y) : IntermediateField K L × IntermediateField K L | x ≤ y} F
   quadratic := fun i hi => by simp [DegLeTwoExtension]
 
 instance : Inhabited (QuadraticTower K L) where
@@ -413,12 +413,10 @@ theorem restrictScalars_extendScalars {K : Type u_1} {L : Type u_2} [Field K] [F
   rfl
 
 lemma help (x : ℂ) (F : IntermediateField ℚ ℂ) (h : x ^ 2 ∈ F) :
-    DegLeTwoExtension (blah x F)  := by
+    DegLeTwoExtension (blah x F) := by
   unfold DegLeTwoExtension
-  unfold adjoin
-  simp only [coe_type_toSubfield, restrictScalars_extendScalars]
-  rw [Nat.dvd_prime Nat.prime_two]
-  rw [adjoin.finrank (integral x F h)]
+  simp only [coe_type_toSubfield]
+  rw [Nat.dvd_prime Nat.prime_two, restrictScalars_extendScalars, adjoin.finrank (integral x F h)]
   exact square_min_poly x F h
 
 end QuadraticTower

@@ -44,7 +44,7 @@ lemma IsConstructible.induction (P : ℂ → Prop) {α : ℂ} (hα : IsConstruct
 
 /-Lemma stating that the first subfield L[0] of a chain of nested subfields L is a
 subfield of the last subfield L[L.length] in the chain-/
-lemma RelSeries_head_subset_last (L : RelSeries (α := IntermediateField ℚ ℂ) (· ≤ ·)) :
+lemma RelSeries_head_subset_last (L : RelSeries {(x, y) : IntermediateField ℚ ℂ × IntermediateField ℚ ℂ | x ≤ y}) :
     L.head ≤ L.last := by
   rw [← RelSeries.apply_zero, ← RelSeries.apply_last]
   rcases L.rel_or_eq_of_le (i := 0) (j := ⟨L.length, by omega⟩) (by simp) with h | h
@@ -96,19 +96,19 @@ lemma isConstructible_iff (x : ℂ) : IsConstructible x ↔ ∃ (T : QuadraticTo
             · simp [T', append]
     · sorry
 
-lemma miao (L : RelSeries ((· ≤ ·) : Rel (IntermediateField ℚ ℂ) (IntermediateField ℚ ℂ)))
+lemma miao (L : RelSeries {(x, y) : IntermediateField ℚ ℂ × IntermediateField ℚ ℂ | x ≤ y})
     {i j : Fin (L.length + 1)} (hij : i ≤ j) : L.toFun i ≤  L.toFun j := by
   have := L.rel_or_eq_of_le hij
   simp_all only [ge_iff_le]
   cases this with
-  | inl h => simp_all only
-  | inr h_1 => simp_all only [le_refl]
+  | inl h => simp_all
+  | inr h_1 => simp_all
 
-noncomputable def ciccio (L : RelSeries ((· ≤ ·) : Rel (IntermediateField ℚ ℂ) (IntermediateField ℚ ℂ)))
+noncomputable def ciccio (L : RelSeries {(x, y) : IntermediateField ℚ ℂ × IntermediateField ℚ ℂ | x ≤ y})
     {i j : Fin (L.length + 1)} (hij : i ≤ j) : Algebra (L.toFun i) (L.toFun j) :=
   (IntermediateField.inclusion (miao L hij)).toAlgebra
 
-noncomputable instance (L : RelSeries ((· ≤ ·) : Rel (IntermediateField ℚ ℂ) (IntermediateField ℚ ℂ)))
+noncomputable instance (L : RelSeries {(x, y) : IntermediateField ℚ ℂ × IntermediateField ℚ ℂ | x ≤ y})
     {i : Fin (L.length + 1)} (hi : i < Fin.last L.length) : Algebra (L.toFun i) (L.toFun (i+1)) :=
   (IntermediateField.inclusion (ciao L hi)).toAlgebra
 
@@ -130,7 +130,7 @@ set_option maxHeartbeats 0 in
 /- set_option synthInstance.maxHeartbeats 0 in
  -//- Lemma : the degree of a chain of L.Length+1 nested subfields L[i] such that
 [L[i]:L[i-1]] = 2 has degree [L[L.Length]:L[0]] = 2^(L.Length)-/
-lemma Tower_Degree_pow_2 (L : RelSeries ((· ≤ ·) : Rel (IntermediateField ℚ ℂ) (IntermediateField ℚ ℂ)))
+lemma Tower_Degree_pow_2 (L : RelSeries {(x, y) : IntermediateField ℚ ℂ × IntermediateField ℚ ℂ | x ≤ y})
     (H : ∀ i, (hi : i < Fin.last L.length) →
       letI := (IntermediateField.inclusion (ciao L hi)).toAlgebra
       Module.finrank (L.toFun i) (L.toFun (i+1)) ∣ 2) :
@@ -139,7 +139,7 @@ lemma Tower_Degree_pow_2 (L : RelSeries ((· ≤ ·) : Rel (IntermediateField �
     induction L using RelSeries.inductionOn' with
     | singleton x =>
       simp only [RelSeries.singleton_length, pow_zero, Nat.dvd_one]
-      exact Module.finrank_self ↥(RelSeries.singleton (fun x1 x2 ↦ x1 ≤ x2) x).head
+      exact Module.finrank_self ↥(RelSeries.singleton {(x, y) : IntermediateField ℚ ℂ × IntermediateField ℚ ℂ | x ≤ y} x).head
     | snoc L S hLS h =>
       letI : Algebra L.head L.last := (IntermediateField.inclusion (RelSeries_head_subset_last L)).toAlgebra
       letI : Algebra L.last S := (IntermediateField.inclusion hLS).toAlgebra

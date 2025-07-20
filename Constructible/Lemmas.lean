@@ -2,8 +2,15 @@ import Mathlib
 
 variable {K L : Type*} [Field K] [Field L] [Algebra K L]
 
-lemma ciao (C : RelSeries (α := IntermediateField K L) (· ≤ ·)) {i : Fin (C.length + 1)}
-    (hi : i < Fin.last C.length) :
+def aa : Rel (IntermediateField K L) (IntermediateField K L) := by
+  simp only [Rel]
+
+  sorry
+
+#check (· ≤ ·)
+
+lemma ciao (C : RelSeries {(x, y) : IntermediateField K L × IntermediateField K L | x ≤ y})
+    {i : Fin (C.length + 1)} (hi : i < Fin.last C.length) :
     C.toFun i ≤ C.toFun (i+1) := C.rel_of_lt <|Fin.lt_add_one_iff.mpr hi
 
 /-Trivial Lemma, but requires a proof for Lean-/
