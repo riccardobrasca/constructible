@@ -54,6 +54,11 @@ lemma Fin.snoc_eq_of_eq_last {n : ℕ} {T : Type*} {i : Fin (n+1+1)} (hi : i < l
     snoc (α := fun _ ↦ T) f x i = f (last n) := by
   rw [← castSucc_castPred i hi.ne, Fin.snoc_castSucc, hi']
 
+lemma Fin.tail_eq {n : ℕ} {T : Type*} (i : Fin n) (f : Fin (n + 1) → T) :
+    tail (α := fun _ ↦ T) f i = f (i.castSucc + 1) := by
+  rw [coeSucc_eq_succ]
+  rfl
+
 end stuff
 
 section propRel
@@ -67,8 +72,23 @@ def propRel (T : RelSeries r) : Prop :=
 
 lemma propRel_tail {T : RelSeries r} (hl : T.length ≠ 0) (hT : propRel P T) :
     propRel P (T.tail hl) := by
-
-  sorry
+  intro i hi
+  simp_all [tail_length]
+  let i' : Fin (T.length + 1) := ⟨i.1 + 1, by
+    simp_all
+    omega⟩
+  have hi' : i' < Fin.last T.length := by
+    simp_all only [tail_length, i']
+    refine mk_lt_of_lt_val ?_
+    simp_all only [val_last]
+    exact Nat.add_lt_of_lt_sub hi
+  convert hT i' hi'
+  rw [Fin.tail_eq]
+  congr
+  simp [i']
+  ext
+  simp
+  exact val_add_one_of_lt hi
 
 lemma propRel_append_aux
     (HP : ∀ (T : RelSeries r) (x : α), propRel P T → (hx : T.last ~[r] x)
@@ -312,8 +332,10 @@ def inductionOn' (motive : QuadraticTower K L → Sort*)
     | zero =>
       convert singleton T.chain.head
       obtain ⟨x, hx⟩ := length_zero heq
-      simp only [hx, head_singleton]
+      simp only [hx]
+      --ext x
       cases T
+      simp
       sorry
       --exact quadratic_tower_eq hx
 
