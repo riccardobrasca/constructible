@@ -110,11 +110,11 @@ noncomputable def ciccio (L : RelSeries {(x, y) : IntermediateField ℚ ℂ × I
 
 noncomputable instance (L : RelSeries {(x, y) : IntermediateField ℚ ℂ × IntermediateField ℚ ℂ | x ≤ y})
     {i : Fin (L.length + 1)} (hi : i < Fin.last L.length) : Algebra (L.toFun i) (L.toFun (i+1)) :=
-  (IntermediateField.inclusion (ciao L hi)).toAlgebra
+  (IntermediateField.inclusion (relsucc L hi)).toAlgebra
 
 lemma Tower_Degree_pow_2' (L : QuadraticTower ℚ ℂ) :
       totalDegree L ∣ 2 ^ L.chain.length := by
-  induction L.chain using RelSeries.inductionOn' with
+  induction L using inductionOn' with
   | singleton x =>
       simp only [totalDegree, AlgHom.toRingHom_eq_coe, RelSeries.singleton_length, pow_zero,
         Nat.dvd_one]
@@ -132,7 +132,7 @@ set_option maxHeartbeats 0 in
 [L[i]:L[i-1]] = 2 has degree [L[L.Length]:L[0]] = 2^(L.Length)-/
 lemma Tower_Degree_pow_2 (L : RelSeries {(x, y) : IntermediateField ℚ ℂ × IntermediateField ℚ ℂ | x ≤ y})
     (H : ∀ i, (hi : i < Fin.last L.length) →
-      letI := (IntermediateField.inclusion (ciao L hi)).toAlgebra
+      letI := (IntermediateField.inclusion (relsucc L hi)).toAlgebra
       Module.finrank (L.toFun i) (L.toFun (i+1)) ∣ 2) :
       letI := (IntermediateField.inclusion (RelSeries_head_subset_last L)).toAlgebra
       Module.finrank L.head L.last ∣ 2 ^ L.length := by

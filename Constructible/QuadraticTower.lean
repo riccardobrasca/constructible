@@ -59,6 +59,11 @@ lemma Fin.tail_eq {n : ℕ} {T : Type*} (i : Fin n) (f : Fin (n + 1) → T) :
   rw [coeSucc_eq_succ]
   rfl
 
+lemma Fin.init_eq {n : ℕ} {T : Type*} (i : Fin n) (f : Fin (n + 1) → T) : --useless?
+    init (α := fun _ ↦ T) f i = f i.castSucc := by
+  --rw [eraseLast, coeSucc_eq_succ]
+  rfl
+
 end stuff
 
 section propRel
@@ -85,10 +90,24 @@ lemma propRel_tail {T : RelSeries r} (hl : T.length ≠ 0) (hT : propRel P T) :
   convert hT i' hi'
   rw [Fin.tail_eq]
   congr
-  simp [i']
   ext
-  simp
   exact val_add_one_of_lt hi
+
+lemma propRel_eraseLast {T : RelSeries r} /- (hl : T.length ≠ 0)  -/(hT : propRel P T) :
+    propRel P T.eraseLast := by
+  intro i hi
+  simp_all [eraseLast_length]
+  let i' : Fin (T.length + 1) := ⟨i.1, by
+    simp_all
+    omega⟩
+  have hi' : i' < Fin.last T.length := by
+    simp_all [eraseLast_length, i']
+    refine mk_lt_of_lt_val ?_
+    simp_all  [val_last]
+    exact Nat.lt_of_lt_pred hi
+  convert hT i' hi' using 2
+  ext
+  rw [val_add_one_of_lt hi, val_add_one_of_lt hi']
 
 lemma propRel_append_aux
     (HP : ∀ (T : RelSeries r) (x : α), propRel P T → (hx : T.last ~[r] x)
@@ -108,7 +127,7 @@ lemma propRel_append_aux
       have h2 : T₃.last ~[r] T₂'.head := by
         simp only [T₃, T₂']
         rw [@last_append]
-        simp [T₃, T₂', x]
+        simp [x]
         rw [head]
         have : 0 < Fin.last T₂.length := by aesop
         have := relsucc T₂ (i := 0) this
@@ -124,7 +143,7 @@ lemma propRel_append_aux
       rw [RelSeries.append_assoc _ _ _ _ this]
       simp [x, RelSeries.cons_self_tail]
 
-  termination_by T₁ T₂ => T₂.length
+  termination_by _ T₂ => T₂.length
 
 lemma PropRel_append (T₁ T₂ : RelSeries r) (h₁ : propRel P T₁) (h₂ : propRel P T₂)
     (connect : T₁.last ~[r] T₂.head) (hP : P connect) :
@@ -190,7 +209,7 @@ theorem degree_le {f e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂)
     simp [FE₂]
     congr 1
     rw [sup_assoc]
-    simp_all [sup_of_le_right, FE₂]
+    simp_all [sup_of_le_right]
   have LE2 : FE₁ ≤ FE₁ ⊔ E₂ := le_trans LE1 <| le_of_eq Eq1
   have : Module.finrank FE₁ FE₂ ≤ Module.finrank E₁ E₂ := by
     rw [Equality_Degrees' Eq1]
@@ -220,7 +239,7 @@ def DegLeTwoExtension {F₁ F₂ : IntermediateField K L}
 
 structure QuadraticTower (K L : Type*) [Field K] [Field L] [Algebra K L] where
   chain : RelSeries {(x, y) : IntermediateField K L × IntermediateField K L | x ≤ y}
-  quadratic : ∀ i, (hi : i < Fin.last chain.length) → DegLeTwoExtension (ciao chain hi)
+  quadratic : ∀ i, (hi : i < Fin.last chain.length) → DegLeTwoExtension (relsucc chain hi)
 
 /-
 theorem quadratic_tower_eq {T₁ T₂ : QuadraticTower K L} (h : T₁.chain = T₂.chain) : T₁ = T₂ := by
@@ -275,7 +294,14 @@ theorem subsingleton_of_length_eq_zero (hs : T.chain.length = 0) : {x | x ∈ T}
 
 def head (T : QuadraticTower K L) : IntermediateField K L := T 0
 
+lemma head_chain (T : QuadraticTower K L) :
+    T.head = T.chain.head := rfl
+
 def last (T : QuadraticTower K L) : IntermediateField K L  := T <| Fin.last _
+
+def eraseLast (T : QuadraticTower K L) : QuadraticTower K L where
+  chain := T.chain.eraseLast
+  quadratic := fun i hi => propRel_eraseLast _ T.quadratic i hi
 
 lemma apply_zero (T : QuadraticTower K L) : T 0 = T.head := rfl
 
@@ -332,17 +358,28 @@ def inductionOn' (motive : QuadraticTower K L → Sort*)
     | zero =>
       convert singleton T.chain.head
       obtain ⟨x, hx⟩ := length_zero heq
-      simp only [hx]
-      --ext x
-      cases T
-      simp
-      sorry
-      --exact quadratic_tower_eq hx
-
+      simp only [hx, RelSeries.head_singleton]
+      ext n k
+      · exact heq
+      · simp [show n = 0 by omega, apply_zero]
+        have : T.head = x := by
+          rw [head_chain, hx]
+          rfl
+        rw [this]
     | succ d hd =>
       have ne0 : T.chain.length ≠ 0 := by simp [heq]
       have len : T.chain.eraseLast.length = d := by simp [heq]
+      have hle : T.eraseLast.chain.last ≤ T.last := by
 
+        sorry
+      have hx' : DegLeTwoExtension hle := by
+
+        sorry
+      have hp : motive T.eraseLast :=  hd T.eraseLast len
+      convert snoc T.eraseLast T.last hle hx' hp
+
+
+      --convert snoc
       /- convert snoc T.chain.eraseLast T.chain.last (T.chain.eraseLast_last_rel_last ne0)
         (hd _ len) -/
       --exact (p.snoc_self_eraseLast ne0).symm

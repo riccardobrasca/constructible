@@ -2,9 +2,9 @@ import Mathlib
 
 variable {K L : Type*} [Field K] [Field L] [Algebra K L]
 
-lemma ciao (C : RelSeries {(x, y) : IntermediateField K L × IntermediateField K L | x ≤ y})
+/- lemma ciao (C : RelSeries {(x, y) : IntermediateField K L × IntermediateField K L | x ≤ y})
     {i : Fin (C.length + 1)} (hi : i < Fin.last C.length) :
-    C.toFun i ≤ C.toFun (i+1) := C.rel_of_lt <|Fin.lt_add_one_iff.mpr hi
+    C.toFun i ≤ C.toFun (i+1) := C.rel_of_lt <|Fin.lt_add_one_iff.mpr hi -/
 
 /-Trivial Lemma, but requires a proof for Lean-/
 lemma Equality_Degrees {K L : Type*} [Field K] [Field L] [Algebra L K] {K₁ K₂ K₃ : IntermediateField L K}
