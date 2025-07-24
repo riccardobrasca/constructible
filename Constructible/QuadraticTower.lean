@@ -5,72 +5,9 @@ open Fin RelSeries Polynomial IntermediateField Rel
 
 variable {α : Type*} {r : Rel α α} (P : {a : α} → {b : α} → a ~[r] b → Prop)
 
-section stuff
-
---Fin 1 consists of only 0
-lemma Fin.eq_zero' {n : ℕ} (hn : n = 0) (i : Fin (n+1)) : i = 0 :=
-  (subsingleton_iff_le_one.2 (by omega)).1 _ _
-
--- a RelSeries with length 0 is a singleton
-lemma length_zero {T : RelSeries r} (hT : T.length = 0) : ∃ x, T = singleton r x :=
-  ⟨T.head, ext (by simp [hT]) (funext fun i ↦ by simp [eq_zero' hT i, head])⟩
-
-@[simp]
---For some i in Fin (n+1) different from last n, the successior of i as an element of Fin n is i+1
-lemma Fin.castPred_succ_eq_add_one {n : ℕ} {i : Fin (n+1)} (hi : i ≠ last n) :
-    (i.castPred hi).succ = i + 1 :=
-  Fin.ext (by simp [val_add_one, hi])
-
-
-lemma Fin.snoc_add_one_castPred_of_lt {n : ℕ} {T : Type*} {i : Fin (n+1+1)} (hi : i < last (n+1))
-    (hi' : i.castPred hi.ne < last n) (f : Fin (n+1) → T) (x : T) :
-    snoc (α := fun _ ↦ T) f x (i+1) = f (i.castPred hi.ne+1) := by
-  suffices : i+1 ≠ Fin.last (n+1)
-  · rw [← castSucc_castPred _ this, Fin.snoc_castSucc]
-    congr
-    simp [← val_eq_val, val_add_one_of_lt hi, val_add_one_of_lt hi']
-  refine fun h ↦ hi'.ne (castSucc_injective _ ?_)
-  simpa [val_add_one_of_lt hi, ← val_eq_val] using h
-
-lemma Fin.snoc_eq_castPred_of_lt {n : ℕ} {T : Type*} {i : Fin (n+1+1)} (hi : i < last (n+1))
-    (f : Fin (n+1) → T) (x : T) :
-    snoc (α := fun _ ↦ T) f x i = f (i.castPred hi.ne) := by
-  conv =>
-    enter [1, 3]
-    rw [← castSucc_castPred i hi.ne]
-  rw [snoc_castSucc]
-
-@[simp]
-lemma Fin.snoc_add_one_of_eq_last {n : ℕ} {T : Type*} {i : Fin (n+1+1)} (hi : i < last (n+1))
-    (hi' : i.castPred hi.ne = last n) (f : Fin (n+1) → T) (x : T) :
-    snoc (α := fun _ ↦ T) f x (i+1) = x := by
-  apply_fun castSucc at hi'
-  simp at hi'
-  simp [hi']
-
-@[simp]
-lemma Fin.snoc_eq_of_eq_last {n : ℕ} {T : Type*} {i : Fin (n+1+1)} (hi : i < last (n+1))
-    (hi' : i.castPred hi.ne = last n) (f : Fin (n+1) → T) (x : T) :
-    snoc (α := fun _ ↦ T) f x i = f (last n) := by
-  rw [← castSucc_castPred i hi.ne, Fin.snoc_castSucc, hi']
-
-lemma Fin.tail_eq {n : ℕ} {T : Type*} (i : Fin n) (f : Fin (n + 1) → T) :
-    tail (α := fun _ ↦ T) f i = f (i.castSucc + 1) := by
-  rw [coeSucc_eq_succ]
-  rfl
-
-lemma Fin.init_eq {n : ℕ} {T : Type*} (i : Fin n) (f : Fin (n + 1) → T) : --useless?
-    init (α := fun _ ↦ T) f i = f i.castSucc := by
-  --rw [eraseLast, coeSucc_eq_succ]
-  rfl
-
-end stuff
-
 section propRel
 
-lemma relsucc (T : RelSeries r) {i : Fin (T.length + 1)} (hi : i < Fin.last T.length) :
-   (T i ~[r] T (i + 1)) := by
-  simpa only [← castPred_succ_eq_add_one hi.ne] using T.step (i.castPred hi.ne)
+
 
 def propRel (T : RelSeries r) : Prop :=
   ∀ i, (hi : i < Fin.last T.length) → P (relsucc T hi)
