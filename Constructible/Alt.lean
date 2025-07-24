@@ -116,6 +116,7 @@ theorem degree_le {f e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂)
     sorry
   simp [finrank] at H_deg
   --rw [Equality_Degrees' Eq1] -/
+namespace QuadraticTower
 
 def relHom_comp {F : IntermediateField K L} (h : finrank (OrderBot.bot_le F) ≠ 0) : Rel.Hom ρ ρ where
   toFun x := F ⊔ x
@@ -125,6 +126,7 @@ def relHom_comp {F : IntermediateField K L} (h : finrank (OrderBot.bot_le F) ≠
     use compositum_le F h₁
     have LE1 : F₁ ≤ F ⊔ F₁ := le_sup_right
     have h₃ : finrank LE1 ≠ 0 := by
+
       sorry
     have := degree_le (f := F) h₁ h₃
     simp [finrank] at this
@@ -139,9 +141,17 @@ def relHom_comp {F : IntermediateField K L} (h : finrank (OrderBot.bot_le F) ≠
 
 
 def map_compositum (T : QuadraticTower K L) {F : IntermediateField K L} (h : finrank (OrderBot.bot_le F) ≠ 0) : QuadraticTower K L :=
-  RelSeries.map T (relHom_comp h)
+  T.map (relHom_comp h)
 
-def compose (T₁ T₂ : QuadraticTower K L) : QuadraticTower K L := append T₁ T₂ sorry
+def compose {T₁ T₂ : QuadraticTower K L} (h1 : finrank (OrderBot.bot_le T₁.last) ≠ 0) (h2 : T₂.head = ⊥) :
+    QuadraticTower K L := append T₁ (T₂.map_compositum h1) (by
+  simp
+  constructor
+  ·
+    sorry
+  · sorry)
+
+end QuadraticTower
 
 variable (K) in
 inductive IsConstructible : L → Prop
@@ -183,3 +193,19 @@ lemma exists_tower {x : L} (hx : IsConstructible K x) : ∃ (T : QuadraticTower 
     · rw [last_snoc]
       simp [F]
       exact mem_adjoin_simple_self T.last a
+
+lemma miao (L : RelSeries {(x, y) : IntermediateField ℚ ℂ × IntermediateField ℚ ℂ | x ≤ y})
+    {i j : Fin (L.length + 1)} (hij : i ≤ j) : L.toFun i ≤  L.toFun j := by
+  have := L.rel_or_eq_of_le hij
+  simp_all only [ge_iff_le]
+  cases this with
+  | inl h => simp_all
+  | inr h_1 => simp_all
+
+noncomputable def ciccio (L : RelSeries {(x, y) : IntermediateField ℚ ℂ × IntermediateField ℚ ℂ | x ≤ y})
+    {i j : Fin (L.length + 1)} (hij : i ≤ j) : Algebra (L.toFun i) (L.toFun j) :=
+  (IntermediateField.inclusion (miao L hij)).toAlgebra
+
+noncomputable instance (L : RelSeries {(x, y) : IntermediateField ℚ ℂ × IntermediateField ℚ ℂ | x ≤ y})
+    {i : Fin (L.length + 1)} (hi : i < Fin.last L.length) : Algebra (L.toFun i) (L.toFun (i+1)) :=
+  (IntermediateField.inclusion (relsucc L hi)).toAlgebra
