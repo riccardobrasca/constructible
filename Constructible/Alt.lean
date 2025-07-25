@@ -104,6 +104,10 @@ theorem degree_le {f e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂)
   simp [finrank] at H_deg
   --rw [Equality_Degrees' Eq1] -/
 
+theorem factdeg {F : IntermediateField K L} (h : F ≤ F) (h' : DegLeTwoExtension h) :
+    Module.finrank F (extendScalars h) = 2 := by
+  sorry
+
 namespace QuadraticTower
 
 set_option synthInstance.maxHeartbeats  0 in --try to make this faster
@@ -114,12 +118,23 @@ def relHom_comp {F : IntermediateField K L} (h : finrank (OrderBot.bot_le F) ≠
     obtain ⟨h₁, h₂⟩ := h
     use compositum_le F h₁
     have LE1 : F₁ ≤ F ⊔ F₁ := le_sup_right
+    have LE2 : F ≤ F ⊔ F₁ := le_sup_left
+    have LE3 : F ⊔ F₁ ≤ F ⊔ F₂ := compositum_le F h₁
     have h₃ : finrank LE1 ≠ 0 := by
       rw [@Nat.ne_zero_iff_zero_lt]
       simp [finrank]
       letI : Module F₁ (F ⊔ F₁ : IntermediateField K L) := (IntermediateField.inclusion LE1).toAlgebra.toModule
       have : Module.Free F₁ (F ⊔ F₁ : IntermediateField K L) := Module.Free.of_divisionRing _ _
+      let F' := restrict LE2
+      have hFFG: (F'.toSubmodule).FG := by
+
+        sorry
       have : Module.Finite ↥F₁ ↥(F ⊔ F₁) := by
+        rw [@Module.finite_def]
+        obtain ⟨s, hs⟩ := hFFG
+        use s
+        rw [@Submodule.eq_top_iff']
+        intro x hx
 
         sorry
       apply Module.finrank_pos
@@ -140,12 +155,16 @@ def relHom_comp {F : IntermediateField K L} (h : finrank (OrderBot.bot_le F) ≠
       --sorry
     have := degree_le (f := F) h₁ h₃
     simp [finrank] at this
+
+    have h₄ : finrank LE3 ≤ 2 := by
+      sorry
     simp_all [DegLeTwoExtension]
     convert_to Module.finrank ↥(F ⊔ F₁) ↥(extendScalars (compositum_le F h₁)) ≤ 2 ∧ 0 < Module.finrank ↥(F ⊔ F₁) ↥(extendScalars (compositum_le F h₁))
     · rw [Nat.dvd_prime Nat.prime_two]
       omega
     · constructor
-      · sorry
+      ·
+        sorry
       · apply Nat.pos_of_ne_zero
         sorry
 
