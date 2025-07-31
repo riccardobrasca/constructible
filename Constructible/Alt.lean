@@ -1,117 +1,70 @@
 import Mathlib
 import Constructible.Lemmas
 import Constructible.alphadegree
+import Constructible.IntermediateField
 
 open Fin RelSeries Polynomial IntermediateField Rel
 
 variable {K L : Type*} [Field K] [Field L] [Algebra K L]
 
-def DegLeTwoExtension {F₁ F₂ : IntermediateField K L} (h_le : F₁ ≤ F₂) : Prop :=
-  Module.finrank F₁ (extendScalars h_le) ∣ 2
 
-local notation3 "ρ" => {(F₁, F₂) : IntermediateField K L × IntermediateField K L | ∃ h : F₁ ≤ F₂, DegLeTwoExtension h}
-
-lemma help (x : L) (F : IntermediateField K L) (h : x ^ 2 ∈ F) :
-    DegLeTwoExtension (blah x F) := by
-  unfold DegLeTwoExtension
-  rw [Nat.dvd_prime Nat.prime_two, restrictScalars_extendScalars, adjoin.finrank (integral x F h)]
-  exact square_min_poly x F h
+local notation3 "ρ" => {(F₁, F₂) : IntermediateField K L × IntermediateField K L |
+  ∃ h : F₁ ≤ F₂, DegLeTwoExtension h}
 
 variable (K L) in
 def QuadraticTower := RelSeries ρ
 
-theorem compositum_le (f : IntermediateField K L) {e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂) :
-     f ⊔ e₁ ≤ f ⊔ e₂ := by
-  gcongr
-
-noncomputable def IntermediateField.finrank {F₁ F₂ : IntermediateField K L} (h : F₁ ≤ F₂) :=
-    letI : Module F₁ F₂ := (IntermediateField.inclusion h).toAlgebra.toModule
-    Module.finrank F₁ F₂
-
-
-set_option maxHeartbeats 0 in --try to make this faster
-theorem degree_le {f e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂)
-    (h' : finrank (le_sup_right (b := e₁) (a := f)) ≠ 0) :
-    finrank (compositum_le f h) ≤ finrank h := by
-  let E₁ := extendScalars (le_refl e₁)
-  let E₂ := extendScalars h
-  let FE₁ := extendScalars (F := e₁) (E := f ⊔ e₁) le_sup_right
-  let FE₂ := extendScalars (F := e₁) (E := f ⊔ e₂) (le_trans h le_sup_right)
-  have LE1 : FE₁ ≤ FE₂ := by
-    rw [IntermediateField.extendScalars_le_extendScalars_iff]
-    exact compositum_le f h
-  letI := (inclusion LE1).toAlgebra.toModule
-  have Eq1 : FE₂ = FE₁ ⊔ E₂ := by
-    rw [IntermediateField.extendScalars_sup]
-    simp [FE₂]
-    congr 1
-    rw [sup_assoc]
-    simp_all [sup_of_le_right]
-  have LE2 : FE₁ ≤ FE₁ ⊔ E₂ := le_trans LE1 <| le_of_eq Eq1
-  letI := (inclusion h).toAlgebra.toModule
-  letI := (inclusion LE2).toAlgebra.toModule
-  have H_deg : Module.finrank ↥e₁ ↥(FE₁ ⊔ E₂) = Module.finrank ↥e₁ FE₁ * Module.finrank FE₁ ↥(FE₁ ⊔ E₂) := by
-    --refine (Module.finrank_mul_finrank ?_ ?_ ?_ ?_ ?_).symm
-    have :  Module.Free ↥e₁ ↥FE₁ := Module.Free.of_divisionRing ↥e₁ ↥FE₁
-    have :  Module.Free ↥FE₁ ↥(FE₁ ⊔ E₂) := Module.Free.of_divisionRing ↥FE₁ ↥(FE₁ ⊔ E₂)
-    have a := Module.finrank_mul_finrank e₁ FE₁ (FE₁ ⊔ E₂ : IntermediateField e₁ L)
-    exact id (Eq.symm a)
-  have : Module.finrank FE₁ FE₂ ≤ Module.finrank E₁ E₂ := by
-    rw [Equality_Degrees' Eq1]
-    have key := IntermediateField.finrank_sup_le FE₁ E₂
-    --have a := Module.finrank_mul_finrank e₁ e₂ (f ⊔ e₁ : IntermediateField K L)
-    rw [H_deg] at key
-    have : Module.finrank ↥e₁ ↥FE₁ ≠ 0 := by
-      simp_all [FE₂, FE₁, E₂]
-      exact h'
-    field_simp [this] at key
-    exact key
-  assumption
-  /- have Eq1 : f ⊔ e₂ = (f ⊔ e₁) ⊔ e₂ := by simp [sup_assoc, h]
-  have LE0 := le_refl e₁
-  have LE1 : e₁ ≤ f ⊔ e₁ := le_sup_right
-  have LE2 : e₁ ≤ f ⊔ e₂ := le_trans h <| le_sup_right
-  have LE2' : e₁ ≤ (f ⊔ e₁) ⊔ e₂ := le_trans LE1 le_sup_left
-  have FLE0:= IntermediateField.finrank_sup_le (extendScalars LE1) (extendScalars LE2')
-  have F1 : ↥(f ⊔ e₁ ⊔ e₂) = ↥(extendScalars LE1 ⊔ extendScalars LE2') := by sorry
-  have FLE : finrank LE2' ≤ finrank h * finrank LE1 := by
-    simp [finrank] --Equality_Degrees' F1
-    sorry
-  letI := Algebra_of_le LE1
-  letI M1 := Module_of_le LE1
-  letI M2 := Module_of_le (compositum_le f h)
-  letI M3 := Module_of_le LE2
-  --have S : IsScalarTower ↥e₁ ↥(f ⊔ e₁) ↥(f ⊔ e₂) := sorry
-  --have EQ := Module.finrank_mul_finrank e₁ (f ⊔ e₁ : IntermediateField K L) (f ⊔ e₂ : IntermediateField K L)
-  letI : Module (extendScalars LE1) (extendScalars LE2) := sorry
-  letI : Module (extendScalars LE1) (extendScalars LE2') := sorry
-
-  letI : SMul ↥(extendScalars LE1) ↥(extendScalars LE2') := sorry
-  letI :  IsScalarTower ↥(extendScalars LE0) ↥(extendScalars LE1) ↥(extendScalars LE2') := by sorry
-  letI : Module.Free (extendScalars LE0) (extendScalars LE1) := sorry
-  letI : Module.Free (extendScalars LE1) (extendScalars LE2) := sorry
-  --have EQ := Module.finrank_mul_finrank (extendScalars LE0) (extendScalars LE1) (extendScalars LE2')
-  --have EQ := Module.finrank_mul_finrank (extendScalars LE0) (extendScalars LE1) (extendScalars LE2)
-  --
-  --have : IsScalarTower (extendScalars LE0) (extendScalars LE1) (extendScalars LE2) := by sorry
-  simp only [ge_iff_le]
-  simp only [finrank]
-  rw [Equality_Degrees' Eq1]
-  --have key := IntermediateField.finrank_sup_le (f ⊔ e₁) e₂
-  --have := Module.finrank_mul_finrank e₁ (f ⊔ e₁ : IntermediateField K L) (f ⊔ e₂ : IntermediateField K L)
-  have H_deg : finrank LE1 = finrank (@le_sup_right _ _ e₁ (f ⊔ e₁)) * finrank (compositum_le f h) := by
-    sorry
-  simp [finrank] at H_deg
-  --rw [Equality_Degrees' Eq1] -/
-
-theorem factdeg {F : IntermediateField K L} (h : F ≤ F) (h' : DegLeTwoExtension h) :
-    Module.finrank F (extendScalars h) = 2 := by
-  sorry
-
 namespace QuadraticTower
+/-
+theorem finite_degree (T : QuadraticTower K L) (i : Fin (T.length)) :
+    letI := (inclusion (T.step i).2.1).toAlgebra.toModule
+    Module.finrank (T.toFun (Fin.castSucc i)) (T.toFun i.succ) ≠ 0 := by
+  have := (T.step i).2.2
+  simp [DegLeTwoExtension] at this
+
+  rw [Nat.dvd_prime Nat.prime_two] at this
+
+  sorry -/
+/-
+theorem finite_degree_last {T : QuadraticTower K L} (hl : T.length ≠ 0) : Module.finrank K T.last ≠ 0 := by
+  by_cases hl : T.length = 0
+  · simp
+    sorry
+  let i₀ : Fin T.length := ⟨T.length - 1, by omega⟩
+  have h := T.step i₀
+  have h1 := h.1
+  have h2 := h.2.1
+  have h3 := h.2.2
+  simp [DegLeTwoExtension, finrank] at h3
+
+  sorry -/
+
 
 set_option synthInstance.maxHeartbeats  0 in --try to make this faster
-def relHom_comp {F : IntermediateField K L} (h : finrank (OrderBot.bot_le F) ≠ 0) : Rel.Hom ρ ρ where
+def relHom_comp {F : IntermediateField K L} (h : Module.finrank K F ≠ 0) : Rel.Hom ρ ρ where
+  toFun x := F ⊔ x
+  map_rel' := by
+    intro E₁ E₂ hr
+    obtain ⟨hr₁, hr₂⟩ := hr
+    refine ⟨compositum_le F hr₁, ?_⟩
+    rw [DegLeTwoExtension_iff_ne_le, finrank] at hr₂ ⊢
+    constructor
+    ·
+      sorry
+    ·
+      have := degree_le (f := F) hr₁ (by
+        rw [finrank]
+        --comp finite degree
+
+        sorry)
+      simp [finrank] at this
+      exact le_trans this hr₂.2
+    --use compositum_le F hr₁
+
+/-
+
+set_option synthInstance.maxHeartbeats  0 in --try to make this faster
+def relHom_comp' {F : IntermediateField K L} (h : finrank (OrderBot.bot_le F) ≠ 0) : Rel.Hom ρ ρ where
   toFun x := F ⊔ x
   map_rel' := by
     intro F₁ F₂ h
@@ -167,18 +120,24 @@ def relHom_comp {F : IntermediateField K L} (h : finrank (OrderBot.bot_le F) ≠
         sorry
       · apply Nat.pos_of_ne_zero
         sorry
+ -/
 
-
-def map_compositum (T : QuadraticTower K L) {F : IntermediateField K L} (h : finrank (OrderBot.bot_le F) ≠ 0) : QuadraticTower K L :=
+def map_compositum (T : QuadraticTower K L) {F : IntermediateField K L} (h : Module.finrank K F ≠ 0) : QuadraticTower K L :=
   T.map (relHom_comp h)
 
-def compose {T₁ T₂ : QuadraticTower K L} (h1 : finrank (OrderBot.bot_le T₁.last) ≠ 0) (h2 : T₂.head = ⊥) :
+def compose {T₁ T₂ : QuadraticTower K L} (h1 : Module.finrank K T₁.last ≠ 0) (h2 : T₂.head = ⊥) :
     QuadraticTower K L := append T₁ (T₂.map_compositum h1) (by
   simp
   constructor
-  ·
-    sorry
-  · sorry)
+  · rw [DegLeTwoExtension_iff_ne_le, finrank]
+    simp [map_compositum, relHom_comp]
+    have : RelSeries.last T₁ ⊔ head T₂ = RelSeries.last T₁ := by
+        rw [h2]
+        exact sup_bot_eq (RelSeries.last T₁)
+    rw [Equality_Degrees' this le_sup_left]
+    simp
+
+  · simp [map_compositum, relHom_comp])
 
 /-Lemma stating that the first subfield L[0] of a chain of nested subfields L is a
 subfield of the last subfield L[L.length] in the chain-/
@@ -190,23 +149,22 @@ lemma head_le_last (T : QuadraticTower K L) :
     simp
   | snoc p x hx hp =>
     simp
-    have h1 := hx.1
     rw [apply_zero, head_snoc, ← apply_zero]
     have h2 : p.toFun (Fin.last p.length) = p.last := rfl
     rw [h2] at hp
-    exact le_trans hp h1
+    exact le_trans hp hx.1
 
 noncomputable def totalDegree (T : QuadraticTower K L) : ℕ := finrank (head_le_last T)
 
 lemma totalDegree_singleton (x : IntermediateField K L) : totalDegree (singleton ρ x) = 1 := by
-  simp [totalDegree, RelSeries.singleton_length, finrank]
+  simp [totalDegree, finrank]
   have : (singleton ρ x).head = (singleton ρ x).last := rfl
   rw [Equality_Degrees this (le_of_eq this)]
   exact Module.finrank_self (singleton ρ x).last
 
 lemma totalDegree_snoc (T : QuadraticTower K L) (F : IntermediateField K L)
     (h : T.last ~[ρ] F) : totalDegree (snoc T F h) = totalDegree T * finrank h.1 := by
-  simp [totalDegree, RelSeries.snoc_length, finrank]
+  simp [totalDegree, finrank]
   letI : Algebra (T.head) (T.last) := (IntermediateField.inclusion (head_le_last T)).toAlgebra
   letI : Algebra (T.last) F := (IntermediateField.inclusion h.1).toAlgebra
   letI : Algebra (T.head) F := (IntermediateField.inclusion ((le_trans T.head_le_last h.1))).toAlgebra
@@ -234,14 +192,24 @@ inductive IsConstructible : L → Prop
   | inv (α : L) : IsConstructible α → IsConstructible α⁻¹
   | rad (α : L) : IsConstructible (α ^ 2) → IsConstructible α
 
+open QuadraticTower in
 lemma exists_tower {x : L} (hx : IsConstructible K x) : ∃ (T : QuadraticTower K L), T.head = ⊥ ∧
     x ∈ T.last := by
   induction hx with
   | base a =>
     use RelSeries.singleton _ ⊥
     simpa using IntermediateField.algebraMap_mem ⊥ a
-  | add a b ha hb =>
-    sorry
+  | add a b ha hb hTa hTb =>
+    obtain ⟨T₁, hT₁, hTa⟩ := hTa
+    obtain ⟨T₂, hT2, hTb⟩ := hTb
+    have h1 : Module.finrank K T₁.last ≠ 0 := by
+
+      sorry
+    use QuadraticTower.compose h1 hT2
+    simp [QuadraticTower.compose]
+    refine ⟨hT₁, ?_⟩
+    simp [map_compositum, relHom_comp]
+    refine IntermediateField.add_mem (RelSeries.last T₁ ⊔ RelSeries.last T₂) (mem_left_sup hTa ) (mem_right_sup hTb)
   | neg a ha hT =>
     convert hT using 3
     simp
@@ -257,7 +225,7 @@ lemma exists_tower {x : L} (hx : IsConstructible K x) : ∃ (T : QuadraticTower 
       have := adjoin_contains_field_as_subfield {a} T.last.toSubfield
       simpa using this
     have h2 : DegLeTwoExtension h_le := by
-      exact help a (RelSeries.last T) hl
+      exact deg_le_two_square_root a (RelSeries.last T) hl
     have hr : ∃ h : T.last ≤ F, DegLeTwoExtension h := by use h_le
     use RelSeries.snoc T F hr
     constructor

@@ -3,3 +3,4 @@ import Constructible.Main
 import Constructible.QuadraticTower
 import Constructible.alphadegree
 import Constructible.thetadegree
+import Constructible.IntermediateField
