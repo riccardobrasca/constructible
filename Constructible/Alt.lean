@@ -7,7 +7,6 @@ open Fin RelSeries Polynomial IntermediateField Rel
 
 variable {K L : Type*} [Field K] [Field L] [Algebra K L]
 
-
 local notation3 "ρ" => {(F₁, F₂) : IntermediateField K L × IntermediateField K L |
   ∃ h : F₁ ≤ F₂, DegLeTwoExtension h}
 
@@ -25,9 +24,29 @@ theorem finite_degree (T : QuadraticTower K L) (i : Fin (T.length)) :
   rw [Nat.dvd_prime Nat.prime_two] at this
 
   sorry -/
-/-
-theorem finite_degree_last {T : QuadraticTower K L} (hl : T.length ≠ 0) : Module.finrank K T.last ≠ 0 := by
-  by_cases hl : T.length = 0
+set_option synthInstance.maxHeartbeats  0 in --try to make this faster
+theorem finite_degree_last {T : QuadraticTower K L} (hl : Module.finrank K T.head ≠ 0) : Module.finrank K T.last ≠ 0 := by
+  induction T using RelSeries.inductionOn' with
+  | singleton x =>
+    exact hl
+  | snoc T x hx hT =>
+    have h_head : (T.snoc x hx).head = T.head := by
+      rw [head_snoc]
+    letI : Module ↥T.last ↥x := (IntermediateField.inclusion hx.1).toAlgebra.toModule
+    have h_mul : Module.finrank K T.last * Module.finrank T.last x =
+        Module.finrank K ↥x := Module.finrank_mul_finrank K ↥T.last ↥x
+    simp_all only [← finrank_bot_eq]
+    rw [Equality_Degrees' h_head (IntermediateField.bot_le (T.snoc x hx).head)] at hl
+    specialize hT hl
+    have : (T.snoc x hx).last = x := by
+      rw [last_snoc]
+    rw [Equality_Degrees' this (IntermediateField.bot_le (T.snoc x hx).last), ← h_mul]
+    refine Nat.mul_ne_zero hT ?_
+    have := degLeTwoExtension_ne_zero hx.1 hx.2
+    simp [finrank] at this
+    exact this
+
+  /- by_cases hl : T.length = 0
   · simp
     sorry
   let i₀ : Fin T.length := ⟨T.length - 1, by omega⟩
@@ -35,9 +54,9 @@ theorem finite_degree_last {T : QuadraticTower K L} (hl : T.length ≠ 0) : Modu
   have h1 := h.1
   have h2 := h.2.1
   have h3 := h.2.2
-  simp [DegLeTwoExtension, finrank] at h3
+  simp [DegLeTwoExtension, finrank] at h3 -/
 
-  sorry -/
+
 
 
 set_option synthInstance.maxHeartbeats  0 in --try to make this faster
@@ -46,8 +65,8 @@ def relHom_comp {F : IntermediateField K L} (h : Module.finrank K F ≠ 0) : Rel
   map_rel' := by
     intro E₁ E₂ hr
     obtain ⟨hr₁, hr₂⟩ := hr
-    refine ⟨compositum_le F hr₁, ?_⟩
-    rw [DegLeTwoExtension_iff_ne_le, finrank] at hr₂ ⊢
+    refine ⟨IntermediateField.sup_le_sup_left F hr₁, ?_⟩
+    rw [degLeTwoExtension_iff_ne_le, finrank] at hr₂ ⊢
     constructor
     ·
       sorry
@@ -55,6 +74,7 @@ def relHom_comp {F : IntermediateField K L} (h : Module.finrank K F ≠ 0) : Rel
       have := degree_le (f := F) hr₁ (by
         rw [finrank]
         --comp finite degree
+
 
         sorry)
       simp [finrank] at this
@@ -129,7 +149,7 @@ def compose {T₁ T₂ : QuadraticTower K L} (h1 : Module.finrank K T₁.last �
     QuadraticTower K L := append T₁ (T₂.map_compositum h1) (by
   simp
   constructor
-  · rw [DegLeTwoExtension_iff_ne_le, finrank]
+  · rw [degLeTwoExtension_iff_ne_le, finrank]
     simp [map_compositum, relHom_comp]
     have : RelSeries.last T₁ ⊔ head T₂ = RelSeries.last T₁ := by
         rw [h2]
@@ -203,17 +223,20 @@ lemma exists_tower {x : L} (hx : IsConstructible K x) : ∃ (T : QuadraticTower 
     obtain ⟨T₁, hT₁, hTa⟩ := hTa
     obtain ⟨T₂, hT2, hTb⟩ := hTb
     have h1 : Module.finrank K T₁.last ≠ 0 := by
-
-      sorry
+      apply finite_degree_last
+      rw [← finrank_bot_eq]
+      rw [Equality_Degrees' hT₁]
+      simp
+      exact IntermediateField.bot_le (head T₁)
     use QuadraticTower.compose h1 hT2
     simp [QuadraticTower.compose]
     refine ⟨hT₁, ?_⟩
     simp [map_compositum, relHom_comp]
-    refine IntermediateField.add_mem (RelSeries.last T₁ ⊔ RelSeries.last T₂) (mem_left_sup hTa ) (mem_right_sup hTb)
+    refine IntermediateField.add_mem (RelSeries.last T₁ ⊔ RelSeries.last T₂) (mem_sup_left hTa ) (mem_sup_right hTb)
   | neg a ha hT =>
     convert hT using 3
     simp
-  | mul a b ha hb =>
+  | mul a b ha hb => --same ass add
     sorry
   | inv a ha hT=>
     convert hT using 3
@@ -225,7 +248,7 @@ lemma exists_tower {x : L} (hx : IsConstructible K x) : ∃ (T : QuadraticTower 
       have := adjoin_contains_field_as_subfield {a} T.last.toSubfield
       simpa using this
     have h2 : DegLeTwoExtension h_le := by
-      exact deg_le_two_square_root a (RelSeries.last T) hl
+      exact degLeTwoExtension_adjoin_square_root hl
     have hr : ∃ h : T.last ≤ F, DegLeTwoExtension h := by use h_le
     use RelSeries.snoc T F hr
     constructor

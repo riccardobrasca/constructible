@@ -4,56 +4,49 @@ namespace IntermediateField
 
 variable {K L : Type*} [Field K] [Field L] [Algebra K L]
 
-lemma mem_left_sup {F E: IntermediateField K L} {x : L} (h : x ∈ F) :
+lemma mem_sup_left {F E : IntermediateField K L} {x : L} (h : x ∈ F) :
     x ∈ F ⊔ E := by
   rw [← @adjoin_simple_le_iff] at h ⊢
   exact le_trans h le_sup_left
 
-
-lemma mem_right_sup {F E: IntermediateField K L} {x : L} (h : x ∈ E) :
+lemma mem_sup_right {F E : IntermediateField K L} {x : L} (h : x ∈ E) :
     x ∈ F ⊔ E := by
   rw [← @adjoin_simple_le_iff] at h ⊢
   exact le_trans h le_sup_right
-
 
 noncomputable def finrank {F₁ F₂ : IntermediateField K L} (h : F₁ ≤ F₂) :=
     letI : Module F₁ F₂ := (IntermediateField.inclusion h).toAlgebra.toModule
     Module.finrank F₁ F₂
 
-
-
+/-
 theorem comp_ne_zero {E F G : IntermediateField K L} {hLE1 : E ≤ F} {hLE2 : F ≤ G} (hd1 : finrank hLE1 ≠ 0)
     (hd2 : finrank hLE2 ≠ 0) : finrank (le_trans hLE1 hLE2) ≠ 0 := by
 
-  sorry
+  sorry -/
 
 def DegLeTwoExtension {F₁ F₂ : IntermediateField K L} (h_le : F₁ ≤ F₂) : Prop :=
   finrank h_le ∣ 2
 
-lemma DegLeTwoExtension_iff_ne_le {F₁ F₂ : IntermediateField K L} (h_le : F₁ ≤ F₂) :
+lemma degLeTwoExtension_iff_ne_le {F₁ F₂ : IntermediateField K L} (h_le : F₁ ≤ F₂) :
     DegLeTwoExtension h_le ↔ finrank h_le ≠ 0 ∧ finrank h_le ≤ 2 := by
-  simp [DegLeTwoExtension, finrank]
-  apply Iff.intro
-  · intro a
-    apply And.intro
-    · apply Aesop.BuiltinRules.not_intro
-      intro a_1
-      simp_all only [zero_dvd_iff, OfNat.ofNat_ne_zero]
-    · apply Nat.le_of_dvd _ a
-      exact Nat.zero_lt_two
-  · intro a
-    obtain ⟨left, right⟩ := a
-    rw [Nat.dvd_prime Nat.prime_two]
+  rw [DegLeTwoExtension]
+  constructor
+  · intro h
+    exact ⟨fun _ ↦ by simp_all, Nat.le_of_dvd Nat.zero_lt_two h⟩
+  · rw [Nat.dvd_prime Nat.prime_two]
     omega
 
+lemma degLeTwoExtension_ne_zero {F₁ F₂ : IntermediateField K L} (h_le : F₁ ≤ F₂)
+    (h : DegLeTwoExtension h_le) : finrank h_le ≠ 0 := by
+  rw [degLeTwoExtension_iff_ne_le] at h
+  exact h.1
 
-lemma le_ext_squareroot (x : L) (F : IntermediateField K L) :
+lemma le_adjoin (x : L) (F : IntermediateField K L) :
         F ≤ (IntermediateField.adjoin F {x}).restrictScalars K := by
-  rw [restrictScalars_adjoin_eq_sup]
-  simp
+  simp [restrictScalars_adjoin_eq_sup]
 
-lemma deg_le_two_square_root (x : L) (F : IntermediateField K L) (h : x ^ 2 ∈ F) :
-    DegLeTwoExtension (le_ext_squareroot x F) := by
+lemma degLeTwoExtension_adjoin_square_root {x : L} {F : IntermediateField K L} (h : x ^ 2 ∈ F) :
+    DegLeTwoExtension (le_adjoin x F) := by
   simp only [DegLeTwoExtension, finrank, AlgHom.toRingHom_eq_coe]
   have h1 := adjoin.finrank (integral x F h)
   have h2 := square_min_poly x F h
@@ -61,46 +54,63 @@ lemma deg_le_two_square_root (x : L) (F : IntermediateField K L) (h : x ^ 2 ∈ 
   rw [Nat.dvd_prime Nat.prime_two]
   convert h2
 
-theorem compositum_le (f : IntermediateField K L) {e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂) :
+theorem sup_le_sup_left (f : IntermediateField K L) {e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂) :
      f ⊔ e₁ ≤ f ⊔ e₂ := by
   gcongr
 
-
-
 def bot_le (F : IntermediateField K L) : ⊥ ≤ F := OrderBot.bot_le F
-/-
-def base_le {F : IntermediateField K L} : K ≤ ↥F := by
-  sorry
-   -/
 
-set_option maxHeartbeats 0 in
+theorem finrank_bot_eq (F : IntermediateField K L) :
+    Module.finrank (⊥ : IntermediateField K L) F = Module.finrank K F := by
+  rw [← @relfinrank_bot_left, relfinrank_eq_finrank_of_le (bot_le F)]
+  rfl
+
+--set_option maxHeartbeats 0 in
 theorem degree_le' (E : IntermediateField K L) {F : IntermediateField K L}
     (h' : Module.finrank K F ≠ 0) :
     finrank (le_sup_right (a := E) (b := F)) ≤ Module.finrank K E := by
   have h1 := IntermediateField.finrank_sup_le E F
   letI : Module ↥F ↥(E ⊔ F) := (inclusion le_sup_right).toAlgebra.toModule
-  have h2 : Module.finrank K ↥F * Module.finrank ↥F ↥(E ⊔ F) = Module.finrank K ↥(E ⊔ F) := Module.finrank_mul_finrank _ _ _
+  have h2 : Module.finrank K ↥F * Module.finrank ↥F ↥(E ⊔ F) = Module.finrank K ↥(E ⊔ F) :=
+    Module.finrank_mul_finrank _ _ _
   simp [finrank]
   rw [← h2, mul_comm] at h1
   field_simp [h'] at h1
   exact h1
 
-theorem degree_finite {E F : IntermediateField K L}
+/- theorem degree_finite {E F : IntermediateField K L}
     (h' : Module.finrank K F ≠ 0) : finrank (le_sup_left (a := E) (b := F)) ≠ 0 := by
 
-  sorry
+  sorry -/
 
-set_option maxHeartbeats 0 in --try to make this faster
+--set_option maxHeartbeats 0 in --try to make this faster
 theorem degree_le {f e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂)
     (h' : finrank (le_sup_right (b := e₁) (a := f)) ≠ 0) :
-    finrank (compositum_le f h) ≤ finrank h := by
+    finrank (sup_le_sup_left f h) ≤ finrank h := by
+  let E₂ := extendScalars h
+  let FE₁ := extendScalars (F := e₁) (E := f ⊔ e₁) le_sup_right
+  let FE₂ := extendScalars (F := e₁) (E := f ⊔ e₂) (le_trans h le_sup_right)
+  have h_deg := degree_le' (F := FE₁) E₂
+  have Eq1 : FE₂ = E₂ ⊔ FE₁ := by
+    rw [IntermediateField.extendScalars_sup]
+    simp [FE₂]
+    congr 1
+    rw [sup_comm _ e₁, ← sup_assoc]
+    simp [h, sup_comm]
+  specialize h_deg h'
+  rwa [finrank, Equality_Degrees' Eq1.symm le_sup_right] at h_deg
+
+/- set_option maxHeartbeats 0 in --try to make this faster
+theorem degree_le {f e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂)
+    (h' : finrank (le_sup_right (b := e₁) (a := f)) ≠ 0) :
+    finrank (sup_le_sup_left f h) ≤ finrank h := by
   let E₁ := extendScalars (le_refl e₁)
   let E₂ := extendScalars h
   let FE₁ := extendScalars (F := e₁) (E := f ⊔ e₁) le_sup_right
   let FE₂ := extendScalars (F := e₁) (E := f ⊔ e₂) (le_trans h le_sup_right)
   have LE1 : FE₁ ≤ FE₂ := by
     rw [IntermediateField.extendScalars_le_extendScalars_iff]
-    exact compositum_le f h
+    exact sup_le_sup_left f h
   letI := (inclusion LE1).toAlgebra.toModule
   have Eq1 : FE₂ = FE₁ ⊔ E₂ := by
     rw [IntermediateField.extendScalars_sup]
@@ -129,7 +139,7 @@ theorem degree_le {f e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂)
       exact h'
     field_simp [this] at key
     exact key
-  assumption
+  assumption -/
   /- have Eq1 : f ⊔ e₂ = (f ⊔ e₁) ⊔ e₂ := by simp [sup_assoc, h]
   have LE0 := le_refl e₁
   have LE1 : e₁ ≤ f ⊔ e₁ := le_sup_right
