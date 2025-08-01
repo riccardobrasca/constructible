@@ -78,10 +78,10 @@ theorem degree_le' (E : IntermediateField K L) {F : IntermediateField K L}
   field_simp [h'] at h1
   exact h1
 
-/- theorem degree_finite {E F : IntermediateField K L}
-    (h' : Module.finrank K F ≠ 0) : finrank (le_sup_left (a := E) (b := F)) ≠ 0 := by
+theorem degree_finite (E : IntermediateField K L) {F : IntermediateField K L}
+    (h' : Module.finrank K F ≠ 0) : finrank (le_sup_right (a := F) (b := E)) ≠ 0 := by
 
-  sorry -/
+  sorry
 
 --set_option maxHeartbeats 0 in --try to make this faster
 theorem degree_le {f e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂)
