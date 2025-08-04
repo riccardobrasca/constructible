@@ -18,12 +18,6 @@ noncomputable def finrank {F₁ F₂ : IntermediateField K L} (h : F₁ ≤ F₂
     letI : Module F₁ F₂ := (IntermediateField.inclusion h).toAlgebra.toModule
     Module.finrank F₁ F₂
 
-/-
-theorem comp_ne_zero {E F G : IntermediateField K L} {hLE1 : E ≤ F} {hLE2 : F ≤ G} (hd1 : finrank hLE1 ≠ 0)
-    (hd2 : finrank hLE2 ≠ 0) : finrank (le_trans hLE1 hLE2) ≠ 0 := by
-
-  sorry -/
-
 def DegLeTwoExtension {F₁ F₂ : IntermediateField K L} (h_le : F₁ ≤ F₂) : Prop :=
   finrank h_le ∣ 2
 
@@ -78,10 +72,119 @@ theorem degree_le' (E : IntermediateField K L) {F : IntermediateField K L}
   field_simp [h'] at h1
   exact h1
 
+lemma Equality_rank {F₁ F₂ F₃ : IntermediateField K L} (h : F₂ = F₃) (h1 : F₁ ≤ F₂) :
+    letI : Module F₁ F₂ := (IntermediateField.inclusion h1).toAlgebra.toModule
+    letI : Module F₁ F₃ := (IntermediateField.inclusion (h ▸ h1)).toAlgebra.toModule
+    Module.rank F₁ F₂ = Module.rank F₁ F₃ := by
+  subst h
+  rfl
+
+set_option maxHeartbeats 0 in
 theorem degree_finite (E : IntermediateField K L) {F : IntermediateField K L}
     (h' : Module.finrank K F ≠ 0) : finrank (le_sup_right (a := F) (b := E)) ≠ 0 := by
+  rw [finrank]
 
-  sorry
+  letI : Module ↥E ↥(F ⊔ E) := (IntermediateField.inclusion le_sup_right).toAlgebra.toModule
+  have : Module.Free ↥E ↥(F ⊔ E) := Module.Free.of_divisionRing ↥E ↥(F ⊔ E)
+  --have := Module.rank_lt_aleph0_iff (R := E) (M := (F ⊔ E : IntermediateField K L))
+  rw [@Nat.ne_zero_iff_zero_lt, Module.finrank, Cardinal.toNat_pos] at h' ⊢
+  constructor
+  · --this is too complicated, simplyfy (or better make a lemma in general)
+    simp only [AlgHom.toRingHom_eq_coe, ne_eq]
+    rw [rank_eq_zero_iff]
+    simp
+    use 1
+    refine Exists.intro ?_ ?_
+    exact IntermediateField.one_mem (F ⊔ E)
+    intro x hx hxx
+    refine ⟨hxx, ?_⟩
+    exact ne_zero_of_eq_one rfl
+  · have : Algebra.IsAlgebraic K ↥F := by
+      rw [Module.rank_lt_aleph0_iff] at h'
+      have := h'.2
+      exact Algebra.IsAlgebraic.of_finite (R := K) (A := F)
+    have := IntermediateField.adjoin_rank_le_of_isAlgebraic_right E F
+    have := lt_of_le_of_lt this h'.2
+    convert this using 1
+    let FE := restrictScalars (L' := E) (E := adjoin ↥E (F : Set L)) K
+    have eq : F ⊔ E = FE := by
+      simp [FE, restrictScalars_adjoin_eq_sup]
+      rw [sup_comm]
+    have HEFE : E ≤ FE := by
+      apply le_trans (le_sup_right (a := F))
+      simp only [FE]
+      rw [restrictScalars_adjoin_eq_sup, sup_comm]
+      gcongr
+      apply le_of_eq
+      exact Eq.symm (adjoin_self K F)
+    letI : Module ↥E ↥FE := (IntermediateField.inclusion (HEFE)).toAlgebra.toModule
+
+    have : Module.rank ↥E ↥(F ⊔ E) = Module.rank ↥E FE := by
+      simp [FE]
+      rw [Equality_rank eq]
+    /-
+    let FE := extendScalars (F := E) (E := F ⊔ E) le_sup_right
+    have : Module.rank ↥E ↥(F ⊔ E) =  Module.rank ↥E FE := by
+      simp [FE]
+      congr
+    have : adjoin ↥E ↑F = FE := by
+      simp [FE]
+
+      sorry
+    rw [this] -/
+
+
+
+    --have := IntermediateField.rank_sup_le F E
+    --maybe this is the thing Subalgebra.adjoin_rank_le
+    --better use IntermediateField.adjoin_rank_le_of_isAlgebraic
+    --have : Module.Free K F := sorry
+    /- let E' := E.toSubalgebra
+    let F' := F.toSubalgebra
+    have := Subalgebra.adjoin_rank_le (F := K) (K := L) E' F'
+
+
+    have := lt_of_le_of_lt this h'.2
+    apply lt_of_le_of_lt _ this
+
+    simp [E', F']
+ -/
+    rw [this]
+    exact rfl
+
+    --rw [@Submodule.rank_eq_spanRank_of_free]
+
+    /-
+    rw [ Module.rank_lt_aleph0_iff] at h' ⊢
+    obtain ⟨s, hs⟩:= h'.2
+    let m : F ↪ (F ⊔ E : IntermediateField K L) := by
+      have : F ≤ (F ⊔ E : IntermediateField K L) := le_sup_left
+      exact Subtype.impEmbedding (Membership.mem F) (Membership.mem (F ⊔ E)) this
+    use s.map m
+    simp only [AlgHom.toRingHom_eq_coe]
+    rw [@Submodule.eq_top_iff'] at hs ⊢
+    simp
+    intro a ha
+    rw [IntermediateField.sup_def] at ha
+    rw [adjoin] at ha
+    simp [Subfield.closure] at ha -/
+
+
+    --rw [← restrictScalars_adjoin] at ha
+    /- rw [mem_adjoin_iff_div] at ha
+    obtain ⟨f, hf, g, hg, ha⟩ := ha
+    subst ha
+-/
+
+    --rw [@Submodule.mem_span_image_iff_exists_fun]
+
+    --simp
+    --IntermediateField.sup_def
+
+  --apply Module.finrank_pos
+  --Module.rank_lt_aleph0_iff
+
+
 
 --set_option maxHeartbeats 0 in --try to make this faster
 theorem degree_le {f e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂)
@@ -100,81 +203,5 @@ theorem degree_le {f e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂)
   specialize h_deg h'
   rwa [finrank, Equality_Degrees' Eq1.symm le_sup_right] at h_deg
 
-/- set_option maxHeartbeats 0 in --try to make this faster
-theorem degree_le {f e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂)
-    (h' : finrank (le_sup_right (b := e₁) (a := f)) ≠ 0) :
-    finrank (sup_le_sup_left f h) ≤ finrank h := by
-  let E₁ := extendScalars (le_refl e₁)
-  let E₂ := extendScalars h
-  let FE₁ := extendScalars (F := e₁) (E := f ⊔ e₁) le_sup_right
-  let FE₂ := extendScalars (F := e₁) (E := f ⊔ e₂) (le_trans h le_sup_right)
-  have LE1 : FE₁ ≤ FE₂ := by
-    rw [IntermediateField.extendScalars_le_extendScalars_iff]
-    exact sup_le_sup_left f h
-  letI := (inclusion LE1).toAlgebra.toModule
-  have Eq1 : FE₂ = FE₁ ⊔ E₂ := by
-    rw [IntermediateField.extendScalars_sup]
-    simp [FE₂]
-    congr 1
-    rw [sup_assoc]
-    simp_all [sup_of_le_right]
-  have LE2 : FE₁ ≤ FE₁ ⊔ E₂ := le_trans LE1 <| le_of_eq Eq1
-  letI := (inclusion h).toAlgebra.toModule
-  letI := (inclusion LE2).toAlgebra.toModule
-  have H_deg : Module.finrank ↥e₁ ↥(FE₁ ⊔ E₂) = Module.finrank ↥e₁ FE₁ * Module.finrank FE₁ ↥(FE₁ ⊔ E₂) := by
-    --refine (Module.finrank_mul_finrank ?_ ?_ ?_ ?_ ?_).symm
-    have :  Module.Free ↥e₁ ↥FE₁ := Module.Free.of_divisionRing ↥e₁ ↥FE₁
-    have :  Module.Free ↥FE₁ ↥(FE₁ ⊔ E₂) := Module.Free.of_divisionRing ↥FE₁ ↥(FE₁ ⊔ E₂)
-    /- have : IsScalarTower e₁ FE₁ (FE₁ ⊔ E₂ : IntermediateField e₁ L) := by
-      sorry -/
-    have a := Module.finrank_mul_finrank e₁ FE₁ (FE₁ ⊔ E₂ : IntermediateField e₁ L)
-    exact id (Eq.symm a)
-  have : Module.finrank FE₁ FE₂ ≤ Module.finrank E₁ E₂ := by
-    rw [Equality_Degrees' Eq1]
-    have key := IntermediateField.finrank_sup_le FE₁ E₂
-    --have a := Module.finrank_mul_finrank e₁ e₂ (f ⊔ e₁ : IntermediateField K L)
-    rw [H_deg] at key
-    have : Module.finrank ↥e₁ ↥FE₁ ≠ 0 := by
-      simp_all [FE₂, FE₁, E₂]
-      exact h'
-    field_simp [this] at key
-    exact key
-  assumption -/
-  /- have Eq1 : f ⊔ e₂ = (f ⊔ e₁) ⊔ e₂ := by simp [sup_assoc, h]
-  have LE0 := le_refl e₁
-  have LE1 : e₁ ≤ f ⊔ e₁ := le_sup_right
-  have LE2 : e₁ ≤ f ⊔ e₂ := le_trans h <| le_sup_right
-  have LE2' : e₁ ≤ (f ⊔ e₁) ⊔ e₂ := le_trans LE1 le_sup_left
-  have FLE0:= IntermediateField.finrank_sup_le (extendScalars LE1) (extendScalars LE2')
-  have F1 : ↥(f ⊔ e₁ ⊔ e₂) = ↥(extendScalars LE1 ⊔ extendScalars LE2') := by sorry
-  have FLE : finrank LE2' ≤ finrank h * finrank LE1 := by
-    simp [finrank] --Equality_Degrees' F1
-    sorry
-  letI := Algebra_of_le LE1
-  letI M1 := Module_of_le LE1
-  letI M2 := Module_of_le (compositum_le f h)
-  letI M3 := Module_of_le LE2
-  --have S : IsScalarTower ↥e₁ ↥(f ⊔ e₁) ↥(f ⊔ e₂) := sorry
-  --have EQ := Module.finrank_mul_finrank e₁ (f ⊔ e₁ : IntermediateField K L) (f ⊔ e₂ : IntermediateField K L)
-  letI : Module (extendScalars LE1) (extendScalars LE2) := sorry
-  letI : Module (extendScalars LE1) (extendScalars LE2') := sorry
-
-  letI : SMul ↥(extendScalars LE1) ↥(extendScalars LE2') := sorry
-  letI :  IsScalarTower ↥(extendScalars LE0) ↥(extendScalars LE1) ↥(extendScalars LE2') := by sorry
-  letI : Module.Free (extendScalars LE0) (extendScalars LE1) := sorry
-  letI : Module.Free (extendScalars LE1) (extendScalars LE2) := sorry
-  --have EQ := Module.finrank_mul_finrank (extendScalars LE0) (extendScalars LE1) (extendScalars LE2')
-  --have EQ := Module.finrank_mul_finrank (extendScalars LE0) (extendScalars LE1) (extendScalars LE2)
-  --
-  --have : IsScalarTower (extendScalars LE0) (extendScalars LE1) (extendScalars LE2) := by sorry
-  simp only [ge_iff_le]
-  simp only [finrank]
-  rw [Equality_Degrees' Eq1]
-  --have key := IntermediateField.finrank_sup_le (f ⊔ e₁) e₂
-  --have := Module.finrank_mul_finrank e₁ (f ⊔ e₁ : IntermediateField K L) (f ⊔ e₂ : IntermediateField K L)
-  have H_deg : finrank LE1 = finrank (@le_sup_right _ _ e₁ (f ⊔ e₁)) * finrank (compositum_le f h) := by
-    sorry
-  simp [finrank] at H_deg
-  --rw [Equality_Degrees' Eq1] -/
 
 end IntermediateField
