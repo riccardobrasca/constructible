@@ -22,7 +22,7 @@ local notation "h'" => (X ^ 3 - 3 * X - C 1 : Polynomial ℤ)
 
 -- h is the image of h' in ℚ[x]
 lemma h_eq_h' : (map (Int.castRingHom ℚ) h') = h := by
-  simp [map_ofNat]
+  simp
 
 -- the degree of h
 lemma deg_h : (X ^ 3 - 3 * X - C 1 : Polynomial ℚ).natDegree = 3 := by
@@ -124,7 +124,7 @@ lemma is_min_poly_h : h = minpoly ℚ (↑γ : ℂ) := by
   · exact is_monic_h
 
 -- [ℚ(β):ℚ] = 3
-set_option synthInstance.maxHeartbeats 60000 in
+set_option synthInstance.maxHeartbeats 0 in
 theorem gamma_degree : finrank ℚ ℚγ = 3 := by
   rw [adjoin.finrank is_integral_gamma, ← is_min_poly_h]
   compute_degree!
