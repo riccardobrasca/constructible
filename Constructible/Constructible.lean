@@ -1,5 +1,4 @@
 import Mathlib
-import Constructible.Lemmas
 import Constructible.alphadegree
 import Constructible.IntermediateField
 
@@ -17,47 +16,40 @@ namespace QuadraticTower
 
 variable {T T₁ T₂ : QuadraticTower K L}
 
-theorem finite_degree_last (hl : Module.finrank K T.head ≠ 0) : Module.finrank K T.last ≠ 0 := by
-  induction T using RelSeries.inductionOn' with
-  | singleton x =>
-    exact hl
-  | snoc T x hx hT =>
-    have h_head : (T.snoc x hx).head = T.head := by
-      rw [head_snoc]
-    letI : Module ↥T.last ↥x := (IntermediateField.inclusion hx.1).toAlgebra.toModule
-    have h_mul : Module.finrank K T.last * Module.finrank T.last x =
-        Module.finrank K ↥x := Module.finrank_mul_finrank K ↥T.last ↥x
-    simp_all only [← finrank_bot_eq]
-    rw [Equality_Degrees' h_head (IntermediateField.bot_le (T.snoc x hx).head)] at hl
-    specialize hT hl
-    have : (T.snoc x hx).last = x := by
+theorem finrank_last_ne_zero (h : Module.finrank K T.head ≠ 0) : Module.finrank K T.last ≠ 0 := by
+  induction T using inductionOn' with
+  | singleton _ =>
+    exact h
+  | snoc T F hF hT =>
+    rw [finrank_eq (head_snoc T F hF)] at h
+    specialize hT h
+    have h_eq : (T.snoc F hF).last = F := by
       rw [last_snoc]
-    rw [Equality_Degrees' this (IntermediateField.bot_le (T.snoc x hx).last), ← h_mul]
-    refine Nat.mul_ne_zero hT ?_
-    have := degLeTwoExtension_ne_zero hx.1 hx.2
-    simp [finrank] at this
-    exact this
+    letI : Module T.last F := (IntermediateField.inclusion hF.1).toAlgebra.toModule
+    have h_mul : Module.finrank K T.last * Module.finrank T.last F = Module.finrank K F :=
+      Module.finrank_mul_finrank K T.last F
+    rw [finrank_eq h_eq, ← h_mul]
+    refine Nat.mul_ne_zero hT <| degLeTwoExtension_ne_zero hF.1 hF.2
 
 def relHom_comp (h : Module.finrank K F ≠ 0) : Rel.Hom ρ ρ where
-  toFun x := F ⊔ x
+  toFun E := F ⊔ E
   map_rel' := by
     intro E₁ E₂ hr
     obtain ⟨hr₁, hr₂⟩ := hr
     refine ⟨IntermediateField.sup_le_sup_left F hr₁, ?_⟩
     rw [degLeTwoExtension_iff_ne_le, finrank] at hr₂ ⊢
     constructor
-    · let E₁':= extendScalars (le_refl E₁)
-      let E₂' := extendScalars hr₁
+    · let E₂' := extendScalars hr₁
       let FE₁ := extendScalars (F := E₁) (E := F ⊔ E₁) le_sup_right
       let FE₂ := extendScalars (F := E₁) (E := F ⊔ E₂) (le_trans hr₁ le_sup_right)
-      have hdeg := degree_finite (F := E₂') FE₁ hr₂.1
+      have hdeg := finrank_ne_zero (F := E₂') FE₁ hr₂.1
       have heq : E₂' ⊔ FE₁ = FE₂ := by
-        rw [@extendScalars_sup]
+        rw [extendScalars_sup]
         congr 1
         rw [sup_comm E₂, sup_assoc]
         simp [hr₁]
       rwa [finrank, Equality_Degrees' heq] at hdeg
-    · exact le_trans (degree_le hr₁ (degree_finite E₁ h)) hr₂.2
+    · exact le_trans (degree_le hr₁ (finrank_ne_zero E₁ h)) hr₂.2
 
 variable (T) in
 def map_compositum (h : Module.finrank K F ≠ 0) : QuadraticTower K L := T.map (relHom_comp h)
@@ -141,7 +133,7 @@ lemma exists_tower {x : L} (hx : IsConstructible K x) : ∃ (T : QuadraticTower 
     obtain ⟨T₁, hT₁, hTa⟩ := hTa
     obtain ⟨T₂, hT2, hTb⟩ := hTb
     have h1 : Module.finrank K T₁.last ≠ 0 := by
-      apply finite_degree_last
+      apply finrank_last_ne_zero
       rw [← finrank_bot_eq]
       rw [Equality_Degrees' hT₁]
       simp
@@ -158,7 +150,7 @@ lemma exists_tower {x : L} (hx : IsConstructible K x) : ∃ (T : QuadraticTower 
     obtain ⟨T₁, hT₁, hTa⟩ := hTa
     obtain ⟨T₂, hT₂, hTb⟩ := hTb
     have h1 : Module.finrank K T₁.last ≠ 0 := by
-      apply finite_degree_last
+      apply finrank_last_ne_zero
       rw [← finrank_bot_eq]
       rw [Equality_Degrees' hT₁]
       simp
