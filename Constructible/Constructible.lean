@@ -128,7 +128,7 @@ lemma exists_tower {x : L} (hx : IsConstructible K x) : ∃ (T : QuadraticTower 
   induction hx with
   | base a =>
     use RelSeries.singleton _ ⊥
-    simpa using IntermediateField.algebraMap_mem ⊥ a
+    simp
   | add a b ha hb hTa hTb =>
     obtain ⟨T₁, hT₁, hTa⟩ := hTa
     obtain ⟨T₂, hT2, hTb⟩ := hTb
