@@ -55,18 +55,6 @@ theorem finrank_bot_eq : Module.finrank (⊥ : IntermediateField K L) F = Module
   rw [← @relfinrank_bot_left, relfinrank_eq_finrank_of_le (bot_le F)]
   rfl
 
-variable (E) in
-theorem degree_le' (h' : Module.finrank K F ≠ 0) :
-    finrank (le_sup_right (a := E) (b := F)) ≤ Module.finrank K E := by
-  have h1 := IntermediateField.finrank_sup_le E F
-  letI : Module ↥F ↥(E ⊔ F) := (inclusion le_sup_right).toAlgebra.toModule
-  have h2 : Module.finrank K ↥F * Module.finrank ↥F ↥(E ⊔ F) = Module.finrank K ↥(E ⊔ F) :=
-    Module.finrank_mul_finrank _ _ _
-  simp [finrank]
-  rw [← h2, mul_comm] at h1
-  field_simp [h'] at h1
-  exact h1
-
 lemma Equality_rank {F₃ : IntermediateField K L} (h : F₂ = F₃) (h1 : F₁ ≤ F₂) :
     letI : Module F₁ F₂ := (IntermediateField.inclusion h1).toAlgebra.toModule
     letI : Module F₁ F₃ := (IntermediateField.inclusion (h ▸ h1)).toAlgebra.toModule
@@ -74,7 +62,34 @@ lemma Equality_rank {F₃ : IntermediateField K L} (h : F₂ = F₃) (h1 : F₁ 
   subst h
   rfl
 
-set_option maxHeartbeats 0 in
+variable (E) in
+theorem degree_le' (h' : Module.finrank K F ≠ 0) :
+    finrank (le_sup_right (a := E) (b := F)) ≤ Module.finrank K E := by
+  simp only [finrank, Module.finrank, AlgHom.toRingHom_eq_coe]
+  have h1 := IntermediateField.finrank_sup_le E F
+  letI : Module F ↥(E ⊔ F) := (inclusion le_sup_right).toAlgebra.toModule
+  have h2 : Module.finrank K F * Module.finrank F ↥(E ⊔ F) = Module.finrank K ↥(E ⊔ F) :=
+    Module.finrank_mul_finrank _ _ _
+  rw [← h2, mul_comm] at h1
+  field_simp [h'] at h1
+  exact h1
+
+theorem degree_le (h : F₁ ≤ F₂) (h' : finrank (le_sup_right (b := F₁) (a := F)) ≠ 0) :
+    finrank (sup_le_sup_left F h) ≤ finrank h := by
+  let E₂ := extendScalars h
+  let FE₁ := extendScalars (F := F₁) (E := F ⊔ F₁) le_sup_right
+  let FE₂ := extendScalars (F := F₁) (E := F ⊔ F₂) (le_trans h le_sup_right)
+  have h_deg := degree_le' (F := FE₁) E₂
+  have Eq1 : FE₂ = E₂ ⊔ FE₁ := by
+    rw [IntermediateField.extendScalars_sup]
+    simp [FE₂]
+    congr 1
+    rw [sup_comm _ F₁, ← sup_assoc]
+    simp [h, sup_comm]
+  specialize h_deg h'
+  rwa [finrank, Equality_Degrees' Eq1.symm le_sup_right] at h_deg
+
+
 instance (h_le : F₁ ≤ F₂) :
     letI : SMul F₁ F₂ := (IntermediateField.inclusion h_le).toAlgebra.toModule.toSMul
     NoZeroSMulDivisors F₁ F₂ :=
@@ -91,59 +106,42 @@ theorem rank_ne_zero_of_le (h_le : F₁ ≤ F₂) :
   refine Exists.intro (IntermediateField.one_mem F₂) ?_
   exact fun _ _ hx ↦ ⟨hx, ne_zero_of_eq_one rfl⟩
 
-theorem rank_lt_aleph0 (h : Module.rank K F < Cardinal.aleph0) :
+variable (E F) in
+theorem rank_sup_le_rank (h : Algebra.IsAlgebraic K F) :
     letI : Module E ↥(F ⊔ E) := (IntermediateField.inclusion le_sup_right).toAlgebra.toModule
-    Module.rank E ↥(F ⊔ E) < Cardinal.aleph0 := by
-  have : Algebra.IsAlgebraic K ↥F := by
-      rw [Module.rank_lt_aleph0_iff] at h
-      exact Algebra.IsAlgebraic.of_finite (R := K) (A := F)
+    Module.rank E ↥(F ⊔ E) ≤ Module.rank K F := by
   have := IntermediateField.adjoin_rank_le_of_isAlgebraic_right E F
-  have := lt_of_le_of_lt this h
   convert this using 1
   let FE := restrictScalars (L' := E) (E := adjoin E (F : Set L)) K
   have eq : F ⊔ E = FE := by
     rw [sup_comm]
     simp [restrictScalars_adjoin_eq_sup, FE]
   have HEFE : E ≤ FE := by
-    apply le_trans (le_sup_right (a := F))
-    simp only [FE]
-    rw [restrictScalars_adjoin_eq_sup, sup_comm]
-    gcongr
-    exact le_of_eq (adjoin_self K F).symm
+    rw [← eq]
+    exact le_sup_right
   letI : Module E FE := (IntermediateField.inclusion (HEFE)).toAlgebra.toModule
   letI : Module E ↥(F ⊔ E) := (IntermediateField.inclusion le_sup_right).toAlgebra.toModule
   have : Module.rank E ↥(F ⊔ E) = Module.rank ↥E FE := by
-    simp [FE]
-    rw [Equality_rank eq]
+    simp only [FE, Equality_rank eq]
   rw [this]
   exact rfl
+
+theorem rank_lt_aleph0 (h : Module.rank K F < Cardinal.aleph0) :
+    letI : Module E ↥(F ⊔ E) := (IntermediateField.inclusion le_sup_right).toAlgebra.toModule
+    Module.rank E ↥(F ⊔ E) < Cardinal.aleph0 := by
+  have : Algebra.IsAlgebraic K F := by
+      rw [Module.rank_lt_aleph0_iff] at h
+      exact Algebra.IsAlgebraic.of_finite (R := K) (A := F)
+  exact lt_of_le_of_lt (rank_sup_le_rank F E this) h
 
 variable (E) in
 theorem finrank_ne_zero (h' : Module.finrank K F ≠ 0) :
     finrank (le_sup_right (a := F) (b := E)) ≠ 0 := by
   rw [finrank]
-  letI : Module ↥E ↥(F ⊔ E) := (IntermediateField.inclusion le_sup_right).toAlgebra.toModule
-  have : Module.Free ↥E ↥(F ⊔ E) := Module.Free.of_divisionRing ↥E ↥(F ⊔ E)
-  --have := Module.rank_lt_aleph0_iff (R := E) (M := (F ⊔ E : IntermediateField K L))
+  letI : Module E ↥(F ⊔ E) := (IntermediateField.inclusion le_sup_right).toAlgebra.toModule
+  have : Module.Free E ↥(F ⊔ E) := Module.Free.of_divisionRing E ↥(F ⊔ E)
   rw [@Nat.ne_zero_iff_zero_lt, Module.finrank, Cardinal.toNat_pos] at h' ⊢
   refine ⟨rank_ne_zero_of_le le_sup_right, rank_lt_aleph0 h'.2⟩
-
---set_option maxHeartbeats 0 in --try to make this faster
-theorem degree_le (h : F₁ ≤ F₂) (h' : finrank (le_sup_right (b := F₁) (a := F)) ≠ 0) :
-    finrank (sup_le_sup_left F h) ≤ finrank h := by
-  let E₂ := extendScalars h
-  let FE₁ := extendScalars (F := F₁) (E := F ⊔ F₁) le_sup_right
-  let FE₂ := extendScalars (F := F₁) (E := F ⊔ F₂) (le_trans h le_sup_right)
-  have h_deg := degree_le' (F := FE₁) E₂
-  have Eq1 : FE₂ = E₂ ⊔ FE₁ := by
-    rw [IntermediateField.extendScalars_sup]
-    simp [FE₂]
-    congr 1
-    rw [sup_comm _ F₁, ← sup_assoc]
-    simp [h, sup_comm]
-  specialize h_deg h'
-  rwa [finrank, Equality_Degrees' Eq1.symm le_sup_right] at h_deg
-
 
 def DegLeTwoExtension (h_le : F₁ ≤ F₂) : Prop := finrank h_le ∣ 2
 
@@ -166,47 +164,27 @@ lemma le_adjoin (x : L) : F ≤ (IntermediateField.adjoin F {x}).restrictScalars
 
 open Polynomial
 
---clean the two lemmas below
-
-lemma integral (x : L) (F : IntermediateField K L) (h : x ^ 2 ∈ F) : IsIntegral F x := by
-  have : ∃ (a : F), x ^ 2 = ↑a := by
-    simp
-    exact h
+lemma integral {x : L} {F : IntermediateField K L} (h : x ^ 2 ∈ F) : IsIntegral F x := by
+  have : ∃ (a : F), x ^ 2 = a := by simpa
   obtain ⟨a, ha⟩ := this
-  let f := (X ^ 2 - C a : Polynomial F)
-  use f
-  have H : (aeval x) f = 0 := by
-    simp_all only [SetLike.coe_mem, map_sub, map_pow, aeval_X, aeval_C,
-    IntermediateField.algebraMap_apply, sub_self, f]
+  use X ^ 2 - C a
   constructor
-  · monicity
-    simp_all only [SetLike.coe_mem, map_sub, map_pow, aeval_X, aeval_C, IntermediateField.algebraMap_apply, sub_self,
-      Nat.ofNat_pos, leadingCoeff_X_pow_sub_C, f]
-  · exact H
+  · monicity!
+  · simp [ha]
 
-lemma square_min_poly (x : L) (F : IntermediateField K L) (h : x ^ 2 ∈ F) :
+lemma square_min_poly {x : L} {F : IntermediateField K L} (h : x ^ 2 ∈ F) :
     (minpoly F x).natDegree = 1 ∨ (minpoly F x).natDegree = 2 := by
-  have : ∃ (a : F), x ^ 2 = (a : L) := by
-    simp
-    exact h
+  have : ∃ (a : F), x ^ 2 = a := by simpa
   obtain ⟨a, ha⟩ := this
   let f := (X ^ 2 - C a : Polynomial F)
-  let p := minpoly (↑F) x
+  let p := minpoly F x
   have hf : f ≠ 0 := by
     suffices : natDegree f > 0
     · exact ne_zero_of_natDegree_gt this
-    · simp_all only [SetLike.coe_mem, natDegree_sub_C, natDegree_pow,
-        natDegree_X, mul_one, gt_iff_lt, Nat.ofNat_pos, f]
-  have h_int : IsIntegral F x := by
-    exact integral x F h
-  have hp : p ≠ 0 := by
-    suffices : natDegree p > 0
-    · exact ne_zero_of_natDegree_gt this
-    · exact minpoly.natDegree_pos (integral x F h)
-  have hf_deg : degree f = natDegree f := by exact degree_eq_natDegree hf
-  have hf_deg2 : natDegree f = 2 := by
-    simp_all only [SetLike.coe_mem, ne_eq, natDegree_sub_C, natDegree_pow,
-      natDegree_X, mul_one, Nat.cast_ofNat, f, p]
+    · simp_all [f]
+  have hp : p ≠ 0 := minpoly.ne_zero (integral h)
+  have hf_deg : degree f = natDegree f := degree_eq_natDegree hf
+  have hf_deg2 : natDegree f = 2 := by simp [f]
   rw [hf_deg2] at hf_deg
   have hp_deg : degree p = natDegree p := by exact degree_eq_natDegree hp
   have Hdeg : 0 < p.degree ∧ p.degree ≤ f.degree := by
@@ -214,7 +192,7 @@ lemma square_min_poly (x : L) (F : IntermediateField K L) (h : x ^ 2 ∈ F) :
     · rw [hp_deg]
       rw [←gt_iff_lt]
       have : p.natDegree > 0 := by
-        exact minpoly.natDegree_pos h_int
+        exact minpoly.natDegree_pos (integral h)
       simp_all only [SetLike.coe_mem, ne_eq, Nat.cast_ofNat, natDegree_sub_C,
         natDegree_pow, natDegree_X, mul_one, gt_iff_lt, Nat.cast_pos, p, f]
     · apply minpoly.min
@@ -249,8 +227,8 @@ lemma square_min_poly (x : L) (F : IntermediateField K L) (h : x ^ 2 ∈ F) :
 lemma degLeTwoExtension_adjoin_square_root {x : L} (h : x ^ 2 ∈ F) :
     DegLeTwoExtension (le_adjoin F x) := by
   simp only [DegLeTwoExtension, finrank, AlgHom.toRingHom_eq_coe]
-  have h1 := adjoin.finrank (integral x F h)
-  have h2 := square_min_poly x F h
+  have h1 := adjoin.finrank (integral h)
+  have h2 := square_min_poly h
   rw [← h1] at h2
   rw [Nat.dvd_prime Nat.prime_two]
   convert h2
