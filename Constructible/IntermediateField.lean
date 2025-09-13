@@ -70,9 +70,7 @@ theorem degree_le' (h' : Module.finrank K F ≠ 0) :
   letI : Module F ↥(E ⊔ F) := (inclusion le_sup_right).toAlgebra.toModule
   have h2 : Module.finrank K F * Module.finrank F ↥(E ⊔ F) = Module.finrank K ↥(E ⊔ F) :=
     Module.finrank_mul_finrank _ _ _
-  rw [← h2, mul_comm] at h1
-  field_simp [h'] at h1
-  exact h1
+  rwa [← h2, mul_comm, mul_le_mul_iff_left₀ (pos_of_ne_zero h')] at h1
 
 theorem degree_le (h : F₁ ≤ F₂) (h' : finrank (le_sup_right (b := F₁) (a := F)) ≠ 0) :
     finrank (sup_le_sup_left F h) ≤ finrank h := by

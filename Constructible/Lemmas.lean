@@ -1,8 +1,8 @@
 import Mathlib
 
-open Fin RelSeries Polynomial IntermediateField Rel
+open Fin RelSeries Polynomial IntermediateField Rel SetRel
 
-variable {α : Type*} {r : Rel α α} (P : {a : α} → {b : α} → a ~[r] b → Prop)
+variable {α : Type*} {r : SetRel α α} --(P : {a : α} → {b : α} → a ~[r] b → Prop)
 
 section stuff
 

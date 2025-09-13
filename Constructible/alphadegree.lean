@@ -93,6 +93,8 @@ lemma is_min_poly_f : f = minpoly ℚ (↑α : ℂ) := by
   · exact is_root_alpha
   · exact is_monic_f
 
+noncomputable instance : Module ℚ ℚα := by exact ℚ⟮2 ^ (1 / 3)⟯.module'
+
 -- [ℚ(α):ℚ] = 3
 set_option synthInstance.maxHeartbeats 60000 in
 theorem alpha_degree : finrank ℚ ℚα = 3 := by

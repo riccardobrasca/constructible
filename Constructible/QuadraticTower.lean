@@ -1,9 +1,9 @@
 import Mathlib
 import Constructible.Lemmas
 
-open Fin RelSeries Polynomial IntermediateField Rel
+open Fin RelSeries Polynomial IntermediateField Rel SetRel
 
-variable {α : Type*} {r : Rel α α} (P : {a : α} → {b : α} → a ~[r] b → Prop)
+variable {α : Type*} {r : SetRel α α} (P : {a : α} → {b : α} → a ~[r] b → Prop)
 
 section propRel
 
@@ -163,8 +163,8 @@ theorem degree_le {f e₁ e₂ : IntermediateField K L} (h : e₁ ≤ e₂)
       exact id (Eq.symm a)
     --have a := Module.finrank_mul_finrank e₁ e₂ (f ⊔ e₁ : IntermediateField K L)
     rw [H_deg] at key
-    have :  Module.finrank ↥e₁ ↥FE₁ ≠ 0 := h_unneccess?
-    field_simp [this] at key
+    have : Module.finrank ↥e₁ ↥FE₁ ≠ 0 := h_unneccess?
+    rw [mul_le_mul_iff_right₀ (pos_of_ne_zero this)] at key
     exact key
   assumption
 
