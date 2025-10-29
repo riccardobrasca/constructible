@@ -2,7 +2,7 @@ import Mathlib
 import Constructible.alphadegree
 import Constructible.IntermediateField
 
-open Fin RelSeries Polynomial IntermediateField Rel
+open Fin RelSeries Polynomial IntermediateField SetRel
 
 variable {K L : Type*} [Field K] [Field L] [Algebra K L] {F : IntermediateField K L}
 
@@ -31,7 +31,7 @@ theorem finrank_last_ne_zero (h : Module.finrank K T.head ≠ 0) : Module.finran
     rw [finrank_eq h_eq, ← h_mul]
     refine Nat.mul_ne_zero hT <| degLeTwoExtension_ne_zero hF.1 hF.2
 
-def relHom_comp (h : Module.finrank K F ≠ 0) : Rel.Hom ρ ρ where
+def relHom_comp (h : Module.finrank K F ≠ 0) : SetRel.Hom ρ ρ where
   toFun E := F ⊔ E
   map_rel' := by
     intro E₁ E₂ hr
@@ -128,7 +128,7 @@ lemma exists_tower {x : L} (hx : IsConstructible K x) : ∃ (T : QuadraticTower 
   induction hx with
   | base a =>
     use RelSeries.singleton _ ⊥
-    simpa using IntermediateField.algebraMap_mem ⊥ a
+    simp
   | add a b ha hb hTa hTb =>
     obtain ⟨T₁, hT₁, hTa⟩ := hTa
     obtain ⟨T₂, hT2, hTb⟩ := hTb
