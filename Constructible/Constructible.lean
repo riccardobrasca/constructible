@@ -114,6 +114,8 @@ lemma totalDegree_snoc (h : T.last ~[ρ] F) :
 end QuadraticTower
 
 variable (K) in
+/-- An element of L is constructible over K if it can be obtained from K by a finite sequence of
+field operations and taking square roots. -/
 inductive IsConstructible : L → Prop
   | base (α : K) : IsConstructible (algebraMap K L α)
   | add (α β : L) : IsConstructible α → IsConstructible β → IsConstructible (α + β)
@@ -146,7 +148,7 @@ lemma exists_tower {x : L} (hx : IsConstructible K x) : ∃ (T : QuadraticTower 
   | neg a ha hT =>
     convert hT using 3
     simp
-  | mul a b ha hb hTa hTb => --same ass add
+  | mul a b ha hb hTa hTb => --same as add
     obtain ⟨T₁, hT₁, hTa⟩ := hTa
     obtain ⟨T₂, hT₂, hTb⟩ := hTb
     have h1 : Module.finrank K T₁.last ≠ 0 := by
@@ -179,6 +181,8 @@ lemma exists_tower {x : L} (hx : IsConstructible K x) : ∃ (T : QuadraticTower 
       simp [F]
       exact mem_adjoin_simple_self T.last a
 
+--converse is missing
+
 open QuadraticTower
 
 lemma Tower_Degree_pow_2 (T : QuadraticTower K L): T.totalDegree ∣ 2 ^ T.length := by
@@ -204,6 +208,9 @@ lemma finrank_bot'' {F E : Type*} [Field F] [Field E] [Algebra F E]
   Module.finrank ((⊥ : IntermediateField F E)) ↥K = Module.finrank F ↥K :=
   congr(Cardinal.toNat $(rank_bot'' K))
 
+--maybe generalize this to any degree that is not a power of two
+
+
 theorem degree_three_not_cons (x : L) (hx : Module.finrank K (adjoin K {x}) = 3) : ¬(IsConstructible K x) := by
   intro h
   have h' := exists_tower h
@@ -223,5 +230,4 @@ theorem degree_three_not_cons (x : L) (hx : Module.finrank K (adjoin K {x}) = 3)
 -- the cube root of 2
 local notation "α" => (2 : ℂ)^((1 : ℂ)/3)
 
-theorem cannot_double_cube : ¬(IsConstructible ℚ α) := by
-  exact degree_three_not_cons α alpha_degree
+theorem cannot_double_cube : ¬(IsConstructible ℚ α) := degree_three_not_cons α alpha_degree
