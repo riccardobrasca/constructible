@@ -90,7 +90,7 @@ instance (h_le : F₁ ≤ F₂) :
     letI : SMul F₁ F₂ := (IntermediateField.inclusion h_le).toAlgebra.toModule.toSMul
     NoZeroSMulDivisors F₁ F₂ :=
   letI : Module F₁ F₂ := (IntermediateField.inclusion h_le).toAlgebra.toModule
-  Module.Free.noZeroSMulDivisors F₁ F₂
+  GroupWithZero.toNoZeroSMulDivisors
 
 theorem rank_ne_zero_of_le (h_le : F₁ ≤ F₂) :
     letI : Module F₁ F₂ := (IntermediateField.inclusion h_le).toAlgebra.toModule

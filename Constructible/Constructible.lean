@@ -54,8 +54,8 @@ def relHom_comp (h : Module.finrank K F ≠ 0) : SetRel.Hom ρ ρ where
 variable (T) in
 def map_compositum (h : Module.finrank K F ≠ 0) : QuadraticTower K L := T.map (relHom_comp h)
 
-def compose (h1 : Module.finrank K T₁.last ≠ 0) (h2 : T₂.head = ⊥) :
-    QuadraticTower K L := append T₁ (T₂.map_compositum h1) (by
+theorem aux (h1 : Module.finrank K T₁.last ≠ 0) (h2 : T₂.head = ⊥)  :
+    (RelSeries.last T₁, head (T₂.map_compositum h1)) ∈ ρ := by
   simp only [Set.mem_setOf_eq]
   constructor
   · rw [degLeTwoExtension_iff_ne_le, finrank]
@@ -64,9 +64,11 @@ def compose (h1 : Module.finrank K T₁.last ≠ 0) (h2 : T₂.head = ⊥) :
     have : RelSeries.last T₁ ⊔ head T₂ = RelSeries.last T₁ := by
       rw [h2]
       exact sup_bot_eq (RelSeries.last T₁)
-    rw [Equality_Degrees' this le_sup_left]
-    simp
-  · simp [map_compositum, relHom_comp])
+    simp  [Equality_Degrees' this le_sup_left, -inclusion_self]
+  · simp [map_compositum, relHom_comp]
+
+def compose (h1 : Module.finrank K T₁.last ≠ 0) (h2 : T₂.head = ⊥) : QuadraticTower K L :=
+  append T₁ (T₂.map_compositum h1) (aux h1 h2)
 
 /-Lemma stating that the first subfield L[0] of a chain of nested subfields L is a
 subfield of the last subfield L[L.length] in the chain-/
