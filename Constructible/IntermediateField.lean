@@ -63,7 +63,7 @@ lemma Equality_rank {F₃ : IntermediateField K L} (h : F₂ = F₃) (h1 : F₁ 
 variable (E) in
 theorem degree_le' (h' : Module.finrank K F ≠ 0) :
     finrank (le_sup_right (a := E) (b := F)) ≤ Module.finrank K E := by
-  simp only [finrank, Module.finrank, AlgHom.toRingHom_eq_coe]
+  simp only [finrank, Module.finrank]
   have h1 := IntermediateField.finrank_sup_le E F
   letI : Module F ↥(E ⊔ F) := (inclusion le_sup_right).toAlgebra.toModule
   have h2 : Module.finrank K F * Module.finrank F ↥(E ⊔ F) = Module.finrank K ↥(E ⊔ F) :=
@@ -96,11 +96,7 @@ theorem rank_ne_zero_of_le (h_le : F₁ ≤ F₂) :
     letI : Module F₁ F₂ := (IntermediateField.inclusion h_le).toAlgebra.toModule
     Module.rank F₁ F₂ ≠ 0 := by
   letI : Module F₁ F₂ := (IntermediateField.inclusion h_le).toAlgebra.toModule
-  simp only [AlgHom.toRingHom_eq_coe, ne_eq, rank_eq_zero_iff, smul_eq_zero, Subtype.exists,
-    Subtype.forall, not_forall, not_exists, not_and, not_or]
-  use 1
-  refine Exists.intro (IntermediateField.one_mem F₂) ?_
-  exact fun _ _ hx ↦ ⟨hx, ne_zero_of_eq_one rfl⟩
+  exact ne_of_gt (rank_pos (R := F₁) (M := F₂))
 
 variable (E F) in
 theorem rank_sup_le_rank (h : Algebra.IsAlgebraic K F) :
@@ -222,7 +218,7 @@ lemma square_min_poly {x : L} {F : IntermediateField K L} (h : x ^ 2 ∈ F) :
 
 lemma degLeTwoExtension_adjoin_square_root {x : L} (h : x ^ 2 ∈ F) :
     DegLeTwoExtension (le_adjoin F x) := by
-  simp only [DegLeTwoExtension, finrank, AlgHom.toRingHom_eq_coe]
+  simp only [DegLeTwoExtension, finrank]
   have h1 := adjoin.finrank (integral h)
   have h2 := square_min_poly h
   rw [← h1] at h2

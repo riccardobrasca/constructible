@@ -56,16 +56,24 @@ def map_compositum (h : Module.finrank K F ≠ 0) : QuadraticTower K L := T.map 
 
 theorem aux (h1 : Module.finrank K T₁.last ≠ 0) (h2 : T₂.head = ⊥)  :
     (RelSeries.last T₁, head (T₂.map_compositum h1)) ∈ ρ := by
-  simp only [Set.mem_setOf_eq]
-  constructor
-  · rw [degLeTwoExtension_iff_ne_le, finrank]
-    simp only [map_compositum, relHom_comp, Set.mem_setOf_eq, head_map, RelHom.coeFn_mk,
-      AlgHom.toRingHom_eq_coe, ne_eq]
-    have : RelSeries.last T₁ ⊔ head T₂ = RelSeries.last T₁ := by
+  refine ⟨?_, ?_⟩
+  · change RelSeries.last T₁ ≤ RelSeries.last T₁ ⊔ head T₂
+    exact le_sup_left
+  · change DegLeTwoExtension (le_sup_left : RelSeries.last T₁ ≤ RelSeries.last T₁ ⊔ T₂.head)
+    rw [degLeTwoExtension_iff_ne_le]
+    have : RelSeries.last T₁ ⊔ T₂.head = RelSeries.last T₁ := by
       rw [h2]
       exact sup_bot_eq (RelSeries.last T₁)
-    simp  [Equality_Degrees' this le_sup_left, -inclusion_self]
-  · simp [map_compositum, relHom_comp]
+    have hfin :
+        finrank (le_sup_left : RelSeries.last T₁ ≤ RelSeries.last T₁ ⊔ T₂.head) =
+          Module.finrank (↥(RelSeries.last T₁)) (↥(RelSeries.last T₁)) := by
+      rw [finrank, Equality_Degrees' this le_sup_left]
+      rfl
+    constructor
+    · rw [hfin]
+      simp
+    · rw [hfin]
+      simp
 
 def compose (h1 : Module.finrank K T₁.last ≠ 0) (h2 : T₂.head = ⊥) : QuadraticTower K L :=
   append T₁ (T₂.map_compositum h1) (aux h1 h2)
@@ -111,7 +119,6 @@ lemma totalDegree_snoc (h : T.last ~[ρ] F) :
   rw [this, Equality_Degrees, Equality_Degrees']
   · rw [last_snoc]
   · rw [head_snoc]
-  · exact head_le_last (T.snoc F h)
 
 end QuadraticTower
 
@@ -138,10 +145,8 @@ lemma exists_tower {x : L} (hx : IsConstructible K x) : ∃ (T : QuadraticTower 
     obtain ⟨T₂, hT2, hTb⟩ := hTb
     have h1 : Module.finrank K T₁.last ≠ 0 := by
       apply finrank_last_ne_zero
-      rw [← finrank_bot_eq]
-      rw [Equality_Degrees' hT₁]
+      rw [hT₁, ← finrank_bot_eq]
       simp
-      exact IntermediateField.bot_le (head T₁)
     use QuadraticTower.compose h1 hT2
     simp [QuadraticTower.compose]
     refine ⟨hT₁, ?_⟩
@@ -155,10 +160,8 @@ lemma exists_tower {x : L} (hx : IsConstructible K x) : ∃ (T : QuadraticTower 
     obtain ⟨T₂, hT₂, hTb⟩ := hTb
     have h1 : Module.finrank K T₁.last ≠ 0 := by
       apply finrank_last_ne_zero
-      rw [← finrank_bot_eq]
-      rw [Equality_Degrees' hT₁]
+      rw [hT₁, ← finrank_bot_eq]
       simp
-      exact IntermediateField.bot_le (head T₁)
     use QuadraticTower.compose h1 hT₂
     simp [QuadraticTower.compose]
     refine ⟨hT₁, ?_⟩
@@ -228,6 +231,7 @@ theorem degree_three_not_cons (x : L) (hx : Module.finrank K (adjoin K {x}) = 3)
   convert this
   rw [Equality_Degrees b (head_le_last a)]
   simp
+  exact finrank_bot'' (RelSeries.last a)
 
 -- the cube root of 2
 local notation "α" => (2 : ℂ)^((1 : ℂ)/3)

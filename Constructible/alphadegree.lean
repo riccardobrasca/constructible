@@ -69,7 +69,6 @@ lemma is_irred_g : Irreducible g := by
     simp at hn
     interval_cases n
     · simp
-      exact mem_span_singleton_self 2
     · simp
     · simp
   · rw [this]
